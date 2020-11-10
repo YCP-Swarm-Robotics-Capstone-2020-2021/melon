@@ -1,247 +1,159 @@
 #include <iostream>
+#include <sstream>
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
 #include <opencv2/aruco/charuco.hpp>
 
-struct CameraParams
+namespace aruco = cv::aruco;
+
+#define GET_DICT(dict) cv::Ptr<aruco::Dictionary> dict = aruco::getPredefinedDictionary(aruco::dict);
+
+struct CameraCalibration
 {
-    cv::Mat matrix, distCoeffs;
+    cv::Mat matrix, distortion;
+    double error;
+};
+struct Markers
+{
+    cv::Ptr<aruco::Dictionary> dictionary;
+    cv::Ptr<aruco::DetectorParameters> parameters;
+    std::vector<int> ids;
+    std::vector<std::vector<cv::Point2f>> corners, rejectedCorners;
+    std::vector<cv::Vec3d> rvecs, tvecs;
 };
 
-struct Marker
+struct CharucoBoard
 {
-    int id;
+    std::shared_ptr<struct Markers> markers;
+    cv::Ptr<aruco::CharucoBoard> board;
+    std::vector<int> ids;
+    std::vector<cv::Point2f> corners;
+    cv::Vec3d rvec, tvec;
 };
 
-cv::Ptr<cv::aruco::DetectorParameters> ARUCO_PARAMS;
-cv::Ptr<cv::aruco::Dictionary> ARUCO_DICTIONARY;
+std::shared_ptr<struct Markers> detectMarkers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters);
+std::shared_ptr<struct CharucoBoard> detectCharucoBoard(const cv::Mat& image, cv::Ptr<aruco::CharucoBoard> board, std::shared_ptr<struct Markers> markers);
+bool estimateMarkerPoses();
+bool estimateCharucoboardPose();
+struct CameraCalibration calibrateCamera(const std::string& calibrationImagesDir, const cv::Ptr<aruco::CharucoBoard>& board, const cv::Ptr<aruco::DetectorParameters>& parameters);
 
-// in cm
-constexpr int MARKER_SIZE = 2.0;
-
-/// Use calibration images in directory to get camera calibration matrix and distortion coefficients
-/// for making sure retrieved transformations are correct
-struct CameraParams getCameraParams(std::string& calibrationImgsDir);
-cv::Mat getRoi(const cv::Mat& img, const CameraParams& cameraParams);
-/// Process given image and return copy of image with markers and their rotations drawn on top
-cv::Mat getProcessedImage(const cv::Mat& img, const CameraParams& cameraParams);
-/// https://stackoverflow.com/a/24352524/4752083
-cv::Mat rotateImg(const cv::Mat& img, float angle);
-cv::Mat drawBoard(const cv::Mat& img, const CameraParams& cameraParams);
+const std::string CALIBRATION_IMAGES_DIR = "../calibrationImgs/";
+const int CAMERA_ID = 2;
+const int WAIT_TIME = 1;
 int main()
 {
-    ARUCO_PARAMS = cv::aruco::DetectorParameters::create();
-    ARUCO_PARAMS->cornerRefinementMethod = cv::aruco::CORNER_REFINE_NONE;
-    ARUCO_DICTIONARY = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_50);//cv::aruco::generateCustomDictionary(10, 6);//cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_100);
+    // Calibrate camera
+    cv::Ptr<aruco::CharucoBoard> calibrationBoard = aruco::CharucoBoard::create(5, 7, 3.4, 2.0, aruco::getPredefinedDictionary(aruco::DICT_6X6_250));
+    cv::Ptr<aruco::DetectorParameters> calibrationParams = aruco::DetectorParameters::create();
+    calibrationParams->cornerRefinementMethod = aruco::CORNER_REFINE_APRILTAG;
+    struct CameraCalibration calibration = calibrateCamera(CALIBRATION_IMAGES_DIR, calibrationBoard, calibrationParams);
 
-    std::string calibrationImgsDir = "../calibrationImgs/";
-    struct CameraParams cameraParams = getCameraParams(calibrationImgsDir);
+    cv::Ptr<aruco::DetectorParameters> generalParams = aruco::DetectorParameters::create();
+    GET_DICT(DICT_4X4_50);
+    GET_DICT(DICT_6X6_250);
 
-    cv::VideoCapture inputVideo;
-    inputVideo.open(2);
-/*    inputVideo.set(cv::CAP_PROP_FRAME_WIDTH, 1000);
-    inputVideo.set(cv::CAP_PROP_FRAME_HEIGHT, 500);*/
-
-    while(inputVideo.grab())
+    cv::VideoCapture videoFeed;
+    videoFeed.open(CAMERA_ID);
+    while(videoFeed.grab())
     {
         cv::Mat frame;
-        inputVideo.retrieve(frame);
+        videoFeed.retrieve(frame);
 
-/*        cv::Mat processed = drawBoard(frame, cameraParams);
-        cv::imshow("", processed);*/
 
-        cv::Mat processed = getProcessedImage(frame, cameraParams);
-        cv::imshow("", processed);
+        auto markers = detectMarkers(frame, DICT_6X6_250, generalParams);
+        if(!markers->ids.empty())
+        {
 
-        frame = getRoi(frame, cameraParams);
-        processed = getProcessedImage(frame, cameraParams);
+            auto board = detectCharucoBoard(frame, calibrationBoard, markers);
+            if(!board->ids.empty())
+            {
+                aruco::estimatePoseCharucoBoard(board->corners, board->ids, calibrationBoard, calibration.matrix, calibration.distortion, board->rvec, board->tvec);
 
-        cv::imshow("1", frame);
+                aruco::drawDetectedCornersCharuco(frame, board->corners, board->ids, cv::Scalar(0, 0, 255));
+                aruco::drawAxis(frame, calibration.matrix, calibration.distortion, board->rvec, board->tvec, 10.0f);
 
-        if(cv::waitKey(1) == 27)
+                for(int i = 0; i < 3; ++i)
+                    board->rvec[i] *= (180.0/CV_PI);
+                std::stringstream ss;
+                ss << "R(x,y,z): " << board->rvec;
+                cv::putText(frame, ss.str(), cv::Point(1, 20), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
+
+                ss = std::stringstream();
+
+                ss << "T(x,y,z): " << board->tvec;
+                cv::putText(frame, ss.str(), cv::Point(1, 45), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
+            }
+        }
+        cv::imshow("melon", frame);
+
+        if(cv::waitKey(WAIT_TIME) == 27)
             break;
     }
 
     return 0;
 }
 
-struct CameraParams getCameraParams(std::string& calibrationImgsDir)
+std::shared_ptr<struct Markers> detectMarkers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters)
 {
-    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-    // 3.4 is size of all black squares in charuco board
-    cv::Ptr<cv::aruco::CharucoBoard> board = cv::aruco::CharucoBoard::create(5, 7, 3.4, 2.0, dictionary);
-    cv::Size imgSize = {1280, 720};
+    struct Markers detectedMarkers =
+            {
+                .dictionary = dictionary,
+                .parameters = parameters,
+            };
+    aruco::detectMarkers(
+            image,
+            dictionary,
+            detectedMarkers.corners,
+            detectedMarkers.ids,
+            parameters,
+            detectedMarkers.rejectedCorners
+            );
+    return std::make_shared<struct Markers>(detectedMarkers);
+}
 
+std::shared_ptr<struct CharucoBoard> detectCharucoBoard(const cv::Mat& image, cv::Ptr<aruco::CharucoBoard> board, std::shared_ptr<struct Markers> markers)
+{
+    struct CharucoBoard detectedBoard =
+            {
+                .markers = markers,
+            };
+    if(!markers->ids.empty())
+    {
+        aruco::interpolateCornersCharuco(
+                markers->corners,
+                markers->ids,
+                image,
+                board,
+                detectedBoard.corners,
+                detectedBoard.ids
+                );
+    }
+    return std::make_shared<struct CharucoBoard>(detectedBoard);
+}
+
+struct CameraCalibration calibrateCamera(const std::string& calibrationImagesDir, const cv::Ptr<aruco::CharucoBoard>& board, const cv::Ptr<aruco::DetectorParameters>& parameters)
+{
     std::vector<std::vector<int>> allCharucoIds;
     std::vector<std::vector<cv::Point2f>> allCharucoCorners;
+    cv::Size imageSize;
 
-    // Iterate over each of the calibration images in the directory
-    for(auto& p : std::filesystem::directory_iterator(calibrationImgsDir))
+    for(auto& p: std::filesystem::directory_iterator(calibrationImagesDir))
     {
-        // Read the image and detect all of the markers
-        cv::Mat img = cv::imread(p.path().string());
-        std::vector<int> markerIds;
-        std::vector<std::vector<cv::Point2f>> markerCorners;
-        cv::aruco::detectMarkers(img, board->dictionary, markerCorners, markerIds, ARUCO_PARAMS);
+        cv::Mat image = cv::imread(p.path().string());
+        imageSize = image.size();
 
-        // Get the marker positions within the board
-        std::vector<int> charucoIds;
-        std::vector<cv::Point2f> charucoCorners;
-        cv::aruco::interpolateCornersCharuco(markerCorners, markerIds, img, board, charucoCorners, charucoIds);
+        auto markers = detectMarkers(image, board->dictionary, parameters);
+        auto charucoBoard = detectCharucoBoard(image, board, markers);
 
-        allCharucoIds.push_back(charucoIds);
-        allCharucoCorners.push_back(charucoCorners);
+        allCharucoIds.push_back(charucoBoard->ids);
+        allCharucoCorners.push_back(charucoBoard->corners);
     }
 
-    // Get the camera calibration parameters
-    cv::Mat cameraMatrix, distCoeffs;
+    struct CameraCalibration calibration;
     std::vector<cv::Mat> rvecs, tvecs;
-    int calibrationFlags = 0;
-    cv::aruco::calibrateCameraCharuco(allCharucoCorners, allCharucoIds, board, imgSize, cameraMatrix, distCoeffs, rvecs, tvecs, calibrationFlags);
+    int flags = 0;
+    calibration.error = aruco::calibrateCameraCharuco(allCharucoCorners, allCharucoIds, board, imageSize, calibration.matrix, calibration.distortion, rvecs, tvecs, flags);
 
-    return CameraParams
-    {
-        .matrix = cameraMatrix,
-        .distCoeffs = distCoeffs,
-    };
-}
-
-cv::Mat getRoi(const cv::Mat& img, const CameraParams& cameraParams)
-{
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners;
-    cv::aruco::detectMarkers(img, ARUCO_DICTIONARY, corners, ids);
-
-    std::vector<cv::Vec3d> rvecs, tvecs;
-    cv::aruco::estimatePoseSingleMarkers(corners, MARKER_SIZE, cameraParams.matrix, cameraParams.distCoeffs, rvecs, tvecs);
-
-    cv::Mat out;
-    img.copyTo(out);
-
-    std::vector<std::vector<cv::Point2f>> _corners(10);
-
-    std::vector<int> _ids(10);
-    std::vector<cv::Vec3d> _rvecs(10);
-    std::unordered_map<int, std::vector<cv::Point2f>> markers;
-    for(int i = 0; i < ids.size(); ++i)
-    {
-        markers[ids[i]] = corners[i];
-
-        _ids[ids[i]] = ids[i];
-        _corners[ids[i]] = corners[i];
-        _rvecs[ids[i]] = rvecs[i];
-    }
-
-    if(markers.find(0) != markers.end() && markers.find(1) != markers.end() && markers.find(3) != markers.end())
-    {
-        for(int i = 0; i < 3; ++i)
-        {
-            std::cout << _rvecs[0][i] * (180.0/CV_PI) << " ";
-        }
-        std::cout << std::endl;
-
-        out = rotateImg(out, (float)_rvecs[0][1] * (180.0/CV_PI));
-
-        float x = markers[0][2].x;
-        float y = markers[0][2].y;
-        float width = abs(x - markers[1][3].x);
-        float height = abs(y - markers[3][0].y);
-
-        //cv::Rect2f roi(x, y, width, height);
-        //out = out(roi);
-    }
-
-    return out;
-}
-
-cv::Mat getProcessedImage(const cv::Mat& img, const CameraParams& cameraParams)
-{
-    cv::Mat out;
-    img.copyTo(out);
-
-    // Get the markers in the image
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners;
-    cv::aruco::detectMarkers(img, ARUCO_DICTIONARY, corners, ids, ARUCO_PARAMS, cv::noArray(), cameraParams.matrix, cameraParams.distCoeffs);
-
-    // Only if there are markers present
-    if(!ids.empty())
-    {
-        cv::aruco::drawDetectedMarkers(out, corners, ids);
-
-        // Get the orientation of the markers
-        std::vector<cv::Vec3d> rvecs, tvecs;
-        cv::aruco::estimatePoseSingleMarkers(corners, MARKER_SIZE, cameraParams.matrix, cameraParams.distCoeffs, rvecs, tvecs);
-        for(int i = 0; i < ids.size(); ++i)
-        {
-            cv::aruco::drawAxis(out, cameraParams.matrix, cameraParams.distCoeffs, rvecs[i], tvecs[i], MARKER_SIZE/2.0);
-        }
-    }
-
-    return out;
-}
-
-cv::Mat rotateImg(const cv::Mat& img, float angle)
-{
-    // get rotation matrix for rotating the image around its center in pixel coordinates
-    cv::Point2f center((img.cols-1)/2.0, (img.rows-1)/2.0);
-    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
-    // determine bounding rectangle, center not relevant
-    cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), img.size(), angle).boundingRect2f();
-    // adjust transformation matrix
-    rot.at<double>(0,2) += bbox.width/2.0 - img.cols/2.0;
-    rot.at<double>(1,2) += bbox.height/2.0 - img.rows/2.0;
-
-    cv::Mat dst;
-    cv::warpAffine(img, dst, rot, bbox.size());
-    return dst;
-}
-
-cv::Mat drawBoard(const cv::Mat& img, const CameraParams& cameraParams)
-{
-    int i = 0;
-    cv::Mat out;
-    img.copyTo(out);
-
-    cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-    // 3.4 is size of all black squares in charuco board
-    cv::Ptr<cv::aruco::CharucoBoard> board = cv::aruco::CharucoBoard::create(5, 7, 3.4, 2.0, dictionary);
-
-    std::vector<int> markerIds;
-    std::vector<std::vector<cv::Point2f>> markerCorners;
-    std::vector<std::vector<cv::Point2f>> rejectedCorners;
-    cv::aruco::detectMarkers(out, board->dictionary, markerCorners, markerIds, ARUCO_PARAMS, rejectedCorners, cameraParams.matrix, cameraParams.distCoeffs);
-    //cv::aruco::refineDetectedMarkers(out, board, markerCorners, markerIds, rejectedCorners, cameraParams.matrix, cameraParams.distCoeffs, 10.0f, 3.0f, true, cv::noArray(), ARUCO_PARAMS);
-
-    if(!markerIds.empty())
-    {
-        // Get the marker positions within the board
-        std::vector<int> charucoIds;
-        std::vector<cv::Point2f> charucoCorners;
-        cv::aruco::interpolateCornersCharuco(markerCorners, markerIds, out, board, charucoCorners, charucoIds);
-        if (!charucoIds.empty())
-        {
-            cv::aruco::drawDetectedCornersCharuco(out, charucoCorners, charucoIds, cv::Scalar(0, 0, 255));
-
-            cv::Vec3d rvec, tvec;
-            bool valid = cv::aruco::estimatePoseCharucoBoard(charucoCorners, charucoIds, board, cameraParams.matrix, cameraParams.distCoeffs, rvec, tvec);
-
-            for(int i = 0; i < 3; ++i)
-            {
-                std::cout << rvec[i] * (180.0/CV_PI) << " ";
-            }
-            std::cout << std::endl;
-
-            if(valid)
-            {
-                cv::aruco::drawAxis(out, cameraParams.matrix, cameraParams.distCoeffs, rvec, tvec, 10.0f);
-                out = rotateImg(out, rvec[1] * (180.0/CV_PI));
-            }
-            else
-                std::cout << "false" << std::endl;
-        }
-    }
-
-    return out;
+    return calibration;
 }
