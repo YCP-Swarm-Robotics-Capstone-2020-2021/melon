@@ -37,9 +37,14 @@ std::shared_ptr<struct CharucoBoard> detectCharucoBoard(const cv::Mat& image, cv
 bool estimateMarkerPoses();
 bool estimateCharucoboardPose();
 struct CameraCalibration calibrateCamera(const std::string& calibrationImagesDir, const cv::Ptr<aruco::CharucoBoard>& board, const cv::Ptr<aruco::DetectorParameters>& parameters);
+std::pair<float, float> linearRegression(const std::vector<cv::Point2f>& points);
+float len(const cv::Point2f& a);
+void normalize(cv::Point2f& a);
+float dot(const cv::Point2f& a, const cv::Point2f& b);
+float angleBetween(const cv::Point2f& a, const cv::Point2f& b);
 
 const std::string CALIBRATION_IMAGES_DIR = "../calibrationImgs/";
-const int CAMERA_ID = 2;
+const int CAMERA_ID = 1;
 const int WAIT_TIME = 1;
 int main()
 {
@@ -68,21 +73,117 @@ int main()
             auto board = detectCharucoBoard(frame, calibrationBoard, markers);
             if(!board->ids.empty())
             {
-                aruco::estimatePoseCharucoBoard(board->corners, board->ids, calibrationBoard, calibration.matrix, calibration.distortion, board->rvec, board->tvec);
-
                 aruco::drawDetectedCornersCharuco(frame, board->corners, board->ids, cv::Scalar(0, 0, 255));
+
+                std::vector<cv::Point2f> zeroTwenty, threeTwentythree;
+                for(int i = 0; i < board->ids.size(); ++i)
+                {
+                    if(board->ids[i] % 4 == 0)
+                    {
+                        zeroTwenty.push_back(board->corners[i]);
+                    }
+                    if(board->ids[i] % 4 == 3)
+                    {
+                        threeTwentythree.push_back(board->corners[i]);
+                    }
+                }
+
+                auto ztlr = linearRegression(zeroTwenty);
+                float ztm = ztlr.first;
+                float ztb = ztlr.second;
+
+                auto zttlr = linearRegression(threeTwentythree);
+                float zttm = zttlr.first;
+                float zttb = zttlr.second;
+
+                cv::Point2f ztp1, ztp2;
+                for(int i = 0; i < board->ids.size(); ++i)
+                {
+                    if(board->ids[i] % 4 == 0)
+                    {
+                        auto p = board->corners[i];
+                        ztp1.y = (ztm * p.x) + ztb;
+                        ztp1.x = (p.y - ztb) / ztm;
+                        break;
+                    }
+                }
+
+                for(int i = board->ids.size()-1; i > -1; --i)
+                {
+                    if(board->ids[i] % 4 == 0)
+                    {
+                        auto p = board->corners[i];
+                        ztp2.y = (ztm * p.x) + ztb;
+                        ztp2.x = (p.y - ztb) / ztm;
+                        break;
+                    }
+                }
+
+                cv::line(frame, ztp1, ztp2, cv::Scalar(0, 255, 0), 4);
+
+                cv::Point2f zttp1, zttp2;
+                for(int i = 0; i < board->ids.size(); ++i)
+                {
+                    if(board->ids[i] % 4 == 3)
+                    {
+                        auto p = board->corners[i];
+                        zttp1.y = (zttm * p.x) + zttb;
+                        zttp1.x = (p.y - zttb) / zttm;
+                        break;
+                    }
+                }
+
+                for(int i = board->ids.size()-1; i > -1; --i)
+                {
+                    if(board->ids[i] % 4 == 3)
+                    {
+                        auto p = board->corners[i];
+                        zttp2.y = (zttm * p.x) + zttb;
+                        zttp2.x = (p.y - zttb) / zttm;
+                        break;
+                    }
+                }
+                cv::line(frame, zttp1, zttp2, cv::Scalar(0, 255, 0), 4);
+
+                cv::Point2f avgP1, avgP2;
+                avgP1.x = (ztp1.x + zttp1.x) / 2.0;
+                avgP1.y = (zttp1.y + zttp1.y) / 2.0;
+                avgP2.x = (ztp2.x + zttp2.x) / 2.0;
+                avgP2.y = (zttp2.y + zttp2.y) / 2.0;
+                cv::line(frame, avgP1, avgP2, cv::Scalar(255, 0, 0), 4);
+
+                cv::Point2f nP1(frame.size().width/2.0, frame.size().height);
+                cv::Point2f nP2(frame.size().width/2.0, 0);
+                cv::line(frame, nP1, nP2, cv::Scalar(0, 0, 0));
+
+                cv::Point2f rotVec(avgP2.x - avgP1.x, avgP2.y - avgP1.y);
+                cv::Point2f normVec(nP2.x - nP1.x, nP2.y - nP1.y);
+
+                std::stringstream ss;
+                ss << angleBetween(rotVec, normVec) * (180.0/CV_PI) << " degrees";
+                cv::putText(frame, ss.str(), cv::Point(1, 20), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
+
+
+                aruco::estimatePoseCharucoBoard(board->corners, board->ids, calibrationBoard, calibration.matrix, calibration.distortion, board->rvec, board->tvec);
                 aruco::drawAxis(frame, calibration.matrix, calibration.distortion, board->rvec, board->tvec, 10.0f);
 
                 for(int i = 0; i < 3; ++i)
                     board->rvec[i] *= (180.0/CV_PI);
-                std::stringstream ss;
+                ss = std::stringstream();
                 ss << "R(x,y,z): " << board->rvec;
-                cv::putText(frame, ss.str(), cv::Point(1, 20), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
+                cv::putText(frame, ss.str(), cv::Point(1, 45), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
 
                 ss = std::stringstream();
 
                 ss << "T(x,y,z): " << board->tvec;
-                cv::putText(frame, ss.str(), cv::Point(1, 45), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
+                cv::putText(frame, ss.str(), cv::Point(1, 70), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
+
+                ss = std::stringstream();
+                ss << "{";
+                ss << "\"id\":\"board0\", ";
+                ss << "\"rvec\":\"" << board->rvec << "\", ";
+                ss << "\"tvec\":\"" << board->tvec << "\"";
+                ss << "}";
             }
         }
         cv::imshow("melon", frame);
@@ -98,8 +199,8 @@ std::shared_ptr<struct Markers> detectMarkers(const cv::Mat& image, cv::Ptr<aruc
 {
     struct Markers detectedMarkers =
             {
-                .dictionary = dictionary,
-                .parameters = parameters,
+                    .dictionary = dictionary,
+                    .parameters = parameters,
             };
     aruco::detectMarkers(
             image,
@@ -108,7 +209,7 @@ std::shared_ptr<struct Markers> detectMarkers(const cv::Mat& image, cv::Ptr<aruc
             detectedMarkers.ids,
             parameters,
             detectedMarkers.rejectedCorners
-            );
+    );
     return std::make_shared<struct Markers>(detectedMarkers);
 }
 
@@ -116,7 +217,7 @@ std::shared_ptr<struct CharucoBoard> detectCharucoBoard(const cv::Mat& image, cv
 {
     struct CharucoBoard detectedBoard =
             {
-                .markers = markers,
+                    .markers = markers,
             };
     if(!markers->ids.empty())
     {
@@ -127,7 +228,7 @@ std::shared_ptr<struct CharucoBoard> detectCharucoBoard(const cv::Mat& image, cv
                 board,
                 detectedBoard.corners,
                 detectedBoard.ids
-                );
+        );
     }
     return std::make_shared<struct CharucoBoard>(detectedBoard);
 }
@@ -154,6 +255,49 @@ struct CameraCalibration calibrateCamera(const std::string& calibrationImagesDir
     std::vector<cv::Mat> rvecs, tvecs;
     int flags = 0;
     calibration.error = aruco::calibrateCameraCharuco(allCharucoCorners, allCharucoIds, board, imageSize, calibration.matrix, calibration.distortion, rvecs, tvecs, flags);
+    std::cout << calibration.error << std::endl;
 
     return calibration;
+}
+
+std::pair<float, float> linearRegression(const std::vector<cv::Point2f>& points)
+{
+    float xsum = 0;
+    float xEsum = 0;
+    float ysum = 0;
+    float prodsum = 0;
+    for(auto point : points)
+    {
+        xsum += point.x;
+        xEsum += point.x*point.x;
+        ysum += point.y;
+        prodsum += (point.x*point.y);
+    }
+
+    float m = ((points.size() * prodsum) - (xsum * ysum)) / ((points.size() * xEsum) - (xsum*xsum));
+    float b = (ysum - (m * xsum)) / points.size();
+    return std::pair(m, b);
+}
+
+float len(const cv::Point2f& a)
+{
+    return (float)sqrt((a.x * a.x) + (a.y * a.y));
+}
+void normalize(cv::Point2f& a)
+{
+    float l = len(a);
+    a.x /= l;
+    a.y /= l;
+}
+float dot(const cv::Point2f& a, const cv::Point2f& b)
+{
+    return (a.x * b.x) + (a.y * b.y);
+}
+float angleBetween(const cv::Point2f& a, const cv::Point2f& b)
+{
+    cv::Point2f a1 = a;
+    cv::Point2f b1 = b;
+    normalize(a1);
+    normalize(b1);
+    return acos(dot(a1, b1));
 }
