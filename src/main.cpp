@@ -37,7 +37,7 @@ std::shared_ptr<struct CharucoBoard> detectCharucoBoard(const cv::Mat& image, cv
 bool estimateMarkerPoses();
 bool estimateCharucoboardPose();
 struct CameraCalibration calibrateCamera(const std::string& calibrationImagesDir, const cv::Ptr<aruco::CharucoBoard>& board, const cv::Ptr<aruco::DetectorParameters>& parameters);
-std::pair<float, float> linearRegression(const std::vector<cv::Point2f>& points);
+std::optional<std::pair<float, float>> linearRegression(const std::vector<cv::Point2f>& points);
 float len(const cv::Point2f& a);
 void normalize(cv::Point2f& a);
 float dot(const cv::Point2f& a, const cv::Point2f& b);
@@ -75,94 +75,91 @@ int main()
             {
                 aruco::drawDetectedCornersCharuco(frame, board->corners, board->ids, cv::Scalar(0, 0, 255));
 
-                std::vector<cv::Point2f> zeroTwenty, threeTwentythree;
+                // Divide the detected board's points into columns
+                std::vector<std::vector<cv::Point2f>> columns;
                 for(int i = 0; i < board->ids.size(); ++i)
                 {
-                    if(board->ids[i] % 4 == 0)
-                    {
-                        zeroTwenty.push_back(board->corners[i]);
-                    }
-                    if(board->ids[i] % 4 == 3)
-                    {
-                        threeTwentythree.push_back(board->corners[i]);
-                    }
+                    if(columns.size() <= board->ids[i] % 4)
+                        columns.resize((board->ids[i] % 4)+1, std::vector<cv::Point2f>());
+
+                    columns[board->ids[i] % 4].push_back(board->corners[i]);
                 }
 
-                auto ztlr = linearRegression(zeroTwenty);
-                float ztm = ztlr.first;
-                float ztb = ztlr.second;
-
-                auto zttlr = linearRegression(threeTwentythree);
-                float zttm = zttlr.first;
-                float zttb = zttlr.second;
-
-                cv::Point2f ztp1, ztp2;
-                for(int i = 0; i < board->ids.size(); ++i)
+                // Calculate a linear regression trend-line for each column
+                std::vector<std::pair<cv::Point2f, cv::Point2f>> linRegLines;
+                linRegLines.reserve(columns.size());
+                for(auto& column : columns)
                 {
-                    if(board->ids[i] % 4 == 0)
+                    if(column.size() > 1)
                     {
-                        auto p = board->corners[i];
-                        ztp1.y = (ztm * p.x) + ztb;
-                        ztp1.x = (p.y - ztb) / ztm;
-                        break;
+                        auto linReg = linearRegression(column);
+                        std::pair<cv::Point2f, cv::Point2f> line;
+                        cv::Point2f& p1 = column[0];
+                        cv::Point2f& p2 = column[column.size()-1];
+
+                        // Calculate the beginning and end points of each trend-line
+                        if(linReg.has_value())
+                        {
+                            auto [m, b] = linReg.value();
+                            line.first.x = (p1.y - b) / m;
+                            line.first.y = (m * p1.x) + b;
+
+                            line.second.x = (p2.y - b) / m;
+                            line.second.y = (m * p2.x) + b;
+                        }
+                        else
+                        {
+                            line.first = p1;
+                            line.second = p2;
+                        }
+
+
+                        linRegLines.push_back(line);
                     }
                 }
 
-                for(int i = board->ids.size()-1; i > -1; --i)
+                // Draw each of the column lines
+                for(auto& line : linRegLines)
+                    cv::line(frame, line.first, line.second, cv::Scalar(0, 255, 0), 2);
+
+                if(!linRegLines.empty())
                 {
-                    if(board->ids[i] % 4 == 0)
+                    // Calculate and draw the average line from each of the columns
+                    std::pair<cv::Point2f, cv::Point2f> avgLine;
+                    for(auto& line : linRegLines)
                     {
-                        auto p = board->corners[i];
-                        ztp2.y = (ztm * p.x) + ztb;
-                        ztp2.x = (p.y - ztb) / ztm;
-                        break;
+                        avgLine.first.x += line.first.x;
+                        avgLine.first.y += line.first.y;
+
+                        avgLine.second.x += line.second.x;
+                        avgLine.second.y += line.second.y;
                     }
+
+                    avgLine.first.x /= linRegLines.size();
+                    avgLine.first.y /= linRegLines.size();
+                    avgLine.second.x /= linRegLines.size();
+                    avgLine.second.y /= linRegLines.size();
+
+                    cv::line(frame, avgLine.first, avgLine.second, cv::Scalar(255, 0, 0), 2);
+
+                    // Calculate and draw a "normal" line to base rotations off of
+                    std::pair<cv::Point2f, cv::Point2f> hNormal;
+                    hNormal.first = cv::Point2f(frame.size().width / 2.0, frame.size().height);
+                    hNormal.second = cv::Point2f(frame.size().width / 2.0, 0.0);
+                    cv::line(frame, hNormal.first, hNormal.second, cv::Scalar(0, 0, 0));
+
+                    // Calculate the normal and rotation vectors, then get the angle between them
+                    cv::Point2f nVec(hNormal.second.x - hNormal.first.x, hNormal.second.y - hNormal.first.y);
+                    cv::Point2f rVec(avgLine.second.x - avgLine.first.x, avgLine.second.y - avgLine.first.y);
+
+                    float rotation = angleBetween(rVec, nVec) * (180.0/CV_PI);
+
+                    std::stringstream ss;
+                    ss << rotation << " degrees";
+                    cv::putText(frame, ss.str(), cv::Point(1, 20), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
                 }
 
-                cv::line(frame, ztp1, ztp2, cv::Scalar(0, 255, 0), 4);
-
-                cv::Point2f zttp1, zttp2;
-                for(int i = 0; i < board->ids.size(); ++i)
-                {
-                    if(board->ids[i] % 4 == 3)
-                    {
-                        auto p = board->corners[i];
-                        zttp1.y = (zttm * p.x) + zttb;
-                        zttp1.x = (p.y - zttb) / zttm;
-                        break;
-                    }
-                }
-
-                for(int i = board->ids.size()-1; i > -1; --i)
-                {
-                    if(board->ids[i] % 4 == 3)
-                    {
-                        auto p = board->corners[i];
-                        zttp2.y = (zttm * p.x) + zttb;
-                        zttp2.x = (p.y - zttb) / zttm;
-                        break;
-                    }
-                }
-                cv::line(frame, zttp1, zttp2, cv::Scalar(0, 255, 0), 4);
-
-                cv::Point2f avgP1, avgP2;
-                avgP1.x = (ztp1.x + zttp1.x) / 2.0;
-                avgP1.y = (zttp1.y + zttp1.y) / 2.0;
-                avgP2.x = (ztp2.x + zttp2.x) / 2.0;
-                avgP2.y = (zttp2.y + zttp2.y) / 2.0;
-                cv::line(frame, avgP1, avgP2, cv::Scalar(255, 0, 0), 4);
-
-                cv::Point2f nP1(frame.size().width/2.0, frame.size().height);
-                cv::Point2f nP2(frame.size().width/2.0, 0);
-                cv::line(frame, nP1, nP2, cv::Scalar(0, 0, 0));
-
-                cv::Point2f rotVec(avgP2.x - avgP1.x, avgP2.y - avgP1.y);
-                cv::Point2f normVec(nP2.x - nP1.x, nP2.y - nP1.y);
-
-                std::stringstream ss;
-                ss << angleBetween(rotVec, normVec) * (180.0/CV_PI) << " degrees";
-                cv::putText(frame, ss.str(), cv::Point(1, 20), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);
-
+/*                std::stringstream ss;
 
                 aruco::estimatePoseCharucoBoard(board->corners, board->ids, calibrationBoard, calibration.matrix, calibration.distortion, board->rvec, board->tvec);
                 aruco::drawAxis(frame, calibration.matrix, calibration.distortion, board->rvec, board->tvec, 10.0f);
@@ -183,7 +180,7 @@ int main()
                 ss << "\"id\":\"board0\", ";
                 ss << "\"rvec\":\"" << board->rvec << "\", ";
                 ss << "\"tvec\":\"" << board->tvec << "\"";
-                ss << "}";
+                ss << "}";*/
             }
         }
         cv::imshow("melon", frame);
@@ -260,7 +257,7 @@ struct CameraCalibration calibrateCamera(const std::string& calibrationImagesDir
     return calibration;
 }
 
-std::pair<float, float> linearRegression(const std::vector<cv::Point2f>& points)
+std::optional<std::pair<float, float>> linearRegression(const std::vector<cv::Point2f>& points)
 {
     float xsum = 0;
     float xEsum = 0;
@@ -276,7 +273,11 @@ std::pair<float, float> linearRegression(const std::vector<cv::Point2f>& points)
 
     float m = ((points.size() * prodsum) - (xsum * ysum)) / ((points.size() * xEsum) - (xsum*xsum));
     float b = (ysum - (m * xsum)) / points.size();
-    return std::pair(m, b);
+
+    if(m == 0.0 || std::isinf(m) || std::isnan(m))
+        return {};
+    else
+        return std::pair(m, b);
 }
 
 float len(const cv::Point2f& a)
