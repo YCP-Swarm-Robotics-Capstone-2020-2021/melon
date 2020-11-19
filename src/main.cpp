@@ -36,7 +36,7 @@ public:
     }
 };
 
-std::shared_ptr<struct DetectionResult> detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters);
+struct DetectionResult detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters);
 float len(const cv::Point2f& p);
 cv::Point2f normalize(cv::Point2f& p);
 float angle_between(const cv::Point2f& p1, const cv::Point2f& p2);
@@ -72,18 +72,18 @@ int main()
         videoFeed.retrieve(frame);
 
         //auto detection_result = detect_markers(frame, DICT_6X6_250, params);
-        auto detection_result = detect_markers(frame, DICT_4X4_50, params);
-        aruco::drawDetectedMarkers(frame, detection_result->corners, detection_result->ids);
+        struct DetectionResult detection_result = detect_markers(frame, DICT_4X4_50, params);
+        aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
 
         std::unordered_map<int, std::vector<cv::Point2f>> marker_map;
-        for(int i = 0; i < detection_result->ids.size(); ++i)
+        for(int i = 0; i < detection_result.ids.size(); ++i)
         {
-            marker_map[detection_result->ids[i]] = detection_result->corners[i];
+            marker_map[detection_result.ids[i]] = detection_result.corners[i];
         }
 
-        if(!detection_result->ids.empty())
+        if(!detection_result.ids.empty())
         {
-            aruco::drawDetectedMarkers(frame, detection_result->corners, detection_result->ids);
+            aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
 
             Line horizontal_normal;
             horizontal_normal.p1 = cv::Point2f(frame.size().width / 2.0, frame.size().height);
@@ -116,8 +116,8 @@ int main()
                 lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[1]][1]});
 
                 // second side
-                lines.push_back(Line{marker_map[robot.ids[0]][2], marker_map[robot.ids[0]][3]});
-                lines.push_back(Line{marker_map[robot.ids[1]][2], marker_map[robot.ids[1]][3]});
+                lines.push_back(Line{marker_map[robot.ids[0]][3], marker_map[robot.ids[0]][2]});
+                lines.push_back(Line{marker_map[robot.ids[1]][3], marker_map[robot.ids[1]][2]});
                 // connect gap
                 lines.push_back(Line{marker_map[robot.ids[0]][2], marker_map[robot.ids[1]][3]});
                 // connect opposing points
@@ -133,8 +133,8 @@ int main()
                 lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[3]][1]});
 
                 // second side
-                lines.push_back(Line{marker_map[robot.ids[2]][2], marker_map[robot.ids[2]][3]});
-                lines.push_back(Line{marker_map[robot.ids[3]][2], marker_map[robot.ids[3]][3]});
+                lines.push_back(Line{marker_map[robot.ids[2]][3], marker_map[robot.ids[2]][2]});
+                lines.push_back(Line{marker_map[robot.ids[3]][3], marker_map[robot.ids[3]][2]});
                 // connect gap
                 lines.push_back(Line{marker_map[robot.ids[2]][2], marker_map[robot.ids[3]][3]});
                 // connect opposing points
@@ -161,18 +161,6 @@ int main()
                 cv::Point2f avg_vec(avg_line.p2.x - avg_line.p1.x, avg_line.p2.y - avg_line.p1.y);
                 float rotation = angle_between(normal_vec, avg_vec) * (180.0/CV_PI);
 
-                // TODO: Using average rotation instead of rotation of average line results in 45 degree offset?
-/*                cv::Point2f normal_vec(horizontal_normal.p2.x - horizontal_normal.p1.x, horizontal_normal.p2.y - horizontal_normal.p1.y);
-                float rotation = 0;
-                for(const auto& line : lines)
-                {
-                    line.draw(frame, cv::Scalar(0, 0, 255), 2);
-                    cv::Point2f vec(line.p2.x - line.p1.x, line.p2.y - line.p1.y);
-                    rotation += angle_between(normal_vec, vec);
-                }
-                rotation /= lines.size();
-                rotation *= (180.0f/CV_PI);*/
-
                 std::stringstream ss;
                 ss << "Robot [";
                 for(int id : robot.ids)
@@ -181,20 +169,6 @@ int main()
                 cv::putText(frame, ss.str(), cv::Point(1, 15*(i+1)), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255), 1);
 
             }
-
-/*            cv::Point2f normal_vec(horizontal_normal.p2.x - horizontal_normal.p1.x, horizontal_normal.p2.y - horizontal_normal.p1.y);
-            float rotation = 0;
-            for(const auto& line : lines)
-            {
-                cv::Point2f vec(line.p2.x - line.p1.x, line.p2.y - line.p1.y);
-                rotation += angle_between(normal_vec, vec);
-            }
-            rotation /= lines.size();
-            rotation *= (180.0/CV_PI);*/
-
-/*            std::stringstream ss;
-            ss << rotation << " degrees";
-            cv::putText(frame, ss.str(), cv::Point(1, 20), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(255, 255, 255), 2);*/
         }
 
         cv::imshow("melon", frame);
@@ -205,7 +179,7 @@ int main()
     return 0;
 }
 
-std::shared_ptr<struct DetectionResult> detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters)
+struct DetectionResult detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters)
 {
     struct DetectionResult detected_markers =
             {
@@ -220,7 +194,7 @@ std::shared_ptr<struct DetectionResult> detect_markers(const cv::Mat& image, cv:
             parameters,
             detected_markers.rejected_corners
     );
-    return std::make_shared<struct DetectionResult>(detected_markers);
+    return detected_markers;
 }
 
 float len(const cv::Point2f& p)
