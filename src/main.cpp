@@ -86,8 +86,10 @@ int main()
             aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
 
             Line horizontal_normal;
-            horizontal_normal.p1 = cv::Point2f(frame.size().width / 2.0, frame.size().height);
-            horizontal_normal.p2 = cv::Point2f(frame.size().width / 2.0, 0.0);
+//            horizontal_normal.p1 = cv::Point2f(frame.size().width / 2.0, frame.size().height);
+//            horizontal_normal.p2 = cv::Point2f(frame.size().width / 2.0, 0.0);
+            horizontal_normal.p1 = cv::Point2f(frame.size().width, frame.size().height / 2.0);
+            horizontal_normal.p2 = cv::Point2f(0.0, frame.size().height / 2.0);
             horizontal_normal.draw(frame, cv::Scalar(0, 0, 0));
 
             for(int i = 0; i < robots.size(); ++i)
