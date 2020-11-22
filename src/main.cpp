@@ -20,7 +20,7 @@ struct Marker
 };
 struct Robot
 {
-    // 0: Top left, 1: Top right, 2: Bottom left, 3: Bottom right
+    // 0: Top left, 1: Bottom left, 2: Top right, 3: Bottom right
     std::vector<int> ids;
     cv::Point2f position;
     float rotation;
@@ -41,7 +41,7 @@ float len(const cv::Point2f& p);
 cv::Point2f normalize(cv::Point2f& p);
 float angle_between(const cv::Point2f& p1, const cv::Point2f& p2);
 
-const int CAMERA_ID = 1;
+const int CAMERA_ID = 2;
 const int WAIT_TIME = 1;
 int main()
 {
@@ -60,7 +60,7 @@ int main()
      });*/
     robots.push_back(Robot
      {
-             .ids = {0, 2, 1, 3}
+             .ids = {0, 1, 2, 3}
      });
 
     cv::VideoCapture videoFeed;
@@ -73,6 +73,7 @@ int main()
 
         //auto detection_result = detect_markers(frame, DICT_6X6_250, params);
         struct DetectionResult detection_result = detect_markers(frame, DICT_4X4_50, params);
+        //struct DetectionResult detection_result = detect_markers(frame, DICT_6X6_250, params);
         aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
 
         std::unordered_map<int, std::vector<cv::Point2f>> marker_map;
@@ -110,37 +111,37 @@ int main()
                 std::vector<Line> lines;
                 // First pair
                 // first side
-                lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[0]][1]});
-                lines.push_back(Line{marker_map[robot.ids[1]][0], marker_map[robot.ids[1]][1]});
+                lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[0]][3]});
+                lines.push_back(Line{marker_map[robot.ids[1]][0], marker_map[robot.ids[1]][3]});
                 // connect gap
-                lines.push_back(Line{marker_map[robot.ids[0]][1], marker_map[robot.ids[1]][0]});
+                lines.push_back(Line{marker_map[robot.ids[0]][3], marker_map[robot.ids[1]][0]});
                 // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[1]][1]});
+                lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[1]][3]});
 
                 // second side
-                lines.push_back(Line{marker_map[robot.ids[0]][3], marker_map[robot.ids[0]][2]});
-                lines.push_back(Line{marker_map[robot.ids[1]][3], marker_map[robot.ids[1]][2]});
+                lines.push_back(Line{marker_map[robot.ids[0]][1], marker_map[robot.ids[0]][2]});
+                lines.push_back(Line{marker_map[robot.ids[1]][1], marker_map[robot.ids[1]][2]});
                 // connect gap
-                lines.push_back(Line{marker_map[robot.ids[0]][2], marker_map[robot.ids[1]][3]});
+                lines.push_back(Line{marker_map[robot.ids[0]][2], marker_map[robot.ids[1]][1]});
                 // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[0]][3], marker_map[robot.ids[1]][2]});
+                lines.push_back(Line{marker_map[robot.ids[0]][1], marker_map[robot.ids[1]][2]});
 
                 // Second pair
                 // first side
-                lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[2]][1]});
-                lines.push_back(Line{marker_map[robot.ids[3]][0], marker_map[robot.ids[3]][1]});
+                lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[2]][3]});
+                lines.push_back(Line{marker_map[robot.ids[3]][0], marker_map[robot.ids[3]][3]});
                 // connect gap
-                lines.push_back(Line{marker_map[robot.ids[2]][1], marker_map[robot.ids[3]][0]});
+                lines.push_back(Line{marker_map[robot.ids[2]][3], marker_map[robot.ids[3]][0]});
                 // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[3]][1]});
+                lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[3]][3]});
 
                 // second side
-                lines.push_back(Line{marker_map[robot.ids[2]][3], marker_map[robot.ids[2]][2]});
-                lines.push_back(Line{marker_map[robot.ids[3]][3], marker_map[robot.ids[3]][2]});
+                lines.push_back(Line{marker_map[robot.ids[2]][1], marker_map[robot.ids[2]][2]});
+                lines.push_back(Line{marker_map[robot.ids[3]][1], marker_map[robot.ids[3]][2]});
                 // connect gap
-                lines.push_back(Line{marker_map[robot.ids[2]][2], marker_map[robot.ids[3]][3]});
+                lines.push_back(Line{marker_map[robot.ids[2]][2], marker_map[robot.ids[3]][1]});
                 // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[2]][3], marker_map[robot.ids[3]][2]});
+                lines.push_back(Line{marker_map[robot.ids[2]][1], marker_map[robot.ids[3]][2]});
 
                 struct Line avg_line;
                 for(auto& line : lines)
