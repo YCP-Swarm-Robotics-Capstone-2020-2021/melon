@@ -18,13 +18,6 @@ struct Marker
     int id;
     std::vector<cv::Point2f> corners;
 };
-struct Robot
-{
-    // 0: Top left, 1: Bottom left, 2: Top right, 3: Bottom right
-    std::vector<int> ids;
-    cv::Point2f position;
-    float rotation;
-};
 class Line
 {
 public:
@@ -35,13 +28,26 @@ public:
         cv::line(dest, p1, p2, color, thickness);
     }
 };
+class Robot
+{
+public:
+    // 0: Top left, 1: Bottom left, 2: Top right, 3: Bottom right
+    std::vector<int> ids;
+    cv::Point2f position;
+    float rotation;
+    // Generate the lines to be used for rotation
+    // marker_map -> hashmap of the detected markers
+    // out -> generated lines will be inserted here
+    // rotation_offset -> what the final calculated rotation should be offset by
+    void make_lines(std::unordered_map<int, std::vector<cv::Point2f>>& marker_map, std::vector<Line> &out, float& rotation_offset) const;
+};
 
 struct DetectionResult detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters);
 float len(const cv::Point2f& p);
 cv::Point2f normalize(cv::Point2f& p);
 float angle_between(const cv::Point2f& p1, const cv::Point2f& p2);
 
-const int CAMERA_ID = 2;
+const int CAMERA_ID = 1;
 const int WAIT_TIME = 1;
 int main()
 {
@@ -71,9 +77,20 @@ int main()
         cv::Mat frame;
         videoFeed.retrieve(frame);
 
+        Line horizontal_line;
+        horizontal_line.p1 = cv::Point2f(frame.size().width, frame.size().height / 2.0);
+        horizontal_line.p2 = cv::Point2f(0.0, frame.size().height / 2.0);
+        horizontal_line.draw(frame, cv::Scalar(0, 0, 0));
+        cv::Point2f horizontal_vec(horizontal_line.p2.x - horizontal_line.p1.x, horizontal_line.p2.y - horizontal_line.p1.y);
+
+        Line vertical_line;
+        vertical_line.p1 = cv::Point2f(frame.size().width / 2.0, 0.0);
+        vertical_line.p2 = cv::Point2f(frame.size().width / 2.0, frame.size().height);
+        vertical_line.draw(frame, cv::Scalar(0, 0, 0));
+        cv::Point2f vertical_vec(vertical_line.p2.x - vertical_line.p1.x, vertical_line.p2.y - vertical_line.p1.y);
+
         //auto detection_result = detect_markers(frame, DICT_6X6_250, params);
-        struct DetectionResult detection_result = detect_markers(frame, DICT_4X4_50, params);
-        //struct DetectionResult detection_result = detect_markers(frame, DICT_6X6_250, params);
+        auto detection_result = detect_markers(frame, DICT_4X4_50, params);
         aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
 
         std::unordered_map<int, std::vector<cv::Point2f>> marker_map;
@@ -86,62 +103,14 @@ int main()
         {
             aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
 
-            Line horizontal_normal;
-//            horizontal_normal.p1 = cv::Point2f(frame.size().width / 2.0, frame.size().height);
-//            horizontal_normal.p2 = cv::Point2f(frame.size().width / 2.0, 0.0);
-            horizontal_normal.p1 = cv::Point2f(frame.size().width, frame.size().height / 2.0);
-            horizontal_normal.p2 = cv::Point2f(0.0, frame.size().height / 2.0);
-            horizontal_normal.draw(frame, cv::Scalar(0, 0, 0));
-
             for(int i = 0; i < robots.size(); ++i)
             {
                 auto& robot = robots[i];
-                // Make sure that all of the robot's ids have been found, other skip this robot
-                // TODO: Not all ids need to be present for calculations
-                bool all_found = true;
-                for(int id : robot.ids)
-                    if(marker_map.find(id) == marker_map.end())
-                    {
-                        all_found = false;
-                        break;
-                    }
-                if(!all_found)
-                    continue;
 
                 std::vector<Line> lines;
-                // First pair
-                // first side
-                lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[0]][3]});
-                lines.push_back(Line{marker_map[robot.ids[1]][0], marker_map[robot.ids[1]][3]});
-                // connect gap
-                lines.push_back(Line{marker_map[robot.ids[0]][3], marker_map[robot.ids[1]][0]});
-                // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[0]][0], marker_map[robot.ids[1]][3]});
+                float rotation_offset;
+                robot.make_lines(marker_map, lines, rotation_offset);
 
-                // second side
-                lines.push_back(Line{marker_map[robot.ids[0]][1], marker_map[robot.ids[0]][2]});
-                lines.push_back(Line{marker_map[robot.ids[1]][1], marker_map[robot.ids[1]][2]});
-                // connect gap
-                lines.push_back(Line{marker_map[robot.ids[0]][2], marker_map[robot.ids[1]][1]});
-                // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[0]][1], marker_map[robot.ids[1]][2]});
-
-                // Second pair
-                // first side
-                lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[2]][3]});
-                lines.push_back(Line{marker_map[robot.ids[3]][0], marker_map[robot.ids[3]][3]});
-                // connect gap
-                lines.push_back(Line{marker_map[robot.ids[2]][3], marker_map[robot.ids[3]][0]});
-                // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[2]][0], marker_map[robot.ids[3]][3]});
-
-                // second side
-                lines.push_back(Line{marker_map[robot.ids[2]][1], marker_map[robot.ids[2]][2]});
-                lines.push_back(Line{marker_map[robot.ids[3]][1], marker_map[robot.ids[3]][2]});
-                // connect gap
-                lines.push_back(Line{marker_map[robot.ids[2]][2], marker_map[robot.ids[3]][1]});
-                // connect opposing points
-                lines.push_back(Line{marker_map[robot.ids[2]][1], marker_map[robot.ids[3]][2]});
 
                 struct Line avg_line;
                 for(auto& line : lines)
@@ -160,15 +129,41 @@ int main()
 
                 avg_line.draw(frame, cv::Scalar(255, 255, 0), 2);
 
-                cv::Point2f normal_vec(horizontal_normal.p2.x - horizontal_normal.p1.x, horizontal_normal.p2.y - horizontal_normal.p1.y);
                 cv::Point2f avg_vec(avg_line.p2.x - avg_line.p1.x, avg_line.p2.y - avg_line.p1.y);
-                float rotation = angle_between(normal_vec, avg_vec) * (180.0/CV_PI);
+
+                float horizontal_theta = angle_between(horizontal_vec, avg_vec);
+                float vertical_theta = angle_between(vertical_vec, avg_vec);
+
+                // Todo: Each quadrant shouldn't be inclusive on both ends
+                //      of the range
+                bool quadrant1 = vertical_theta >= 0.0 && vertical_theta <= 90.0 &&
+                                    horizontal_theta >= 0.0 && horizontal_theta <= 90.0;
+                bool quadrant2 = vertical_theta >= 0.0 && vertical_theta <= 90.0 &&
+                                    horizontal_theta >= 90.0 && horizontal_theta <= 180.0;
+                bool quadrant3 = vertical_theta >= 90.0 && vertical_theta <= 180.0 &&
+                                    horizontal_theta >= 90.0 && horizontal_theta <= 180.0;
+                bool quadrant4 = vertical_theta >= 90.0 && vertical_theta <= 180.0 &&
+                                    horizontal_theta >= 0.0 && horizontal_theta <= 90.0;
+
+                if(quadrant1 || quadrant2)
+                {
+                    robot.rotation = horizontal_theta;
+                }
+                else if(quadrant3)
+                {
+                    robot.rotation = vertical_theta + 90.0;
+                }
+                else if(quadrant4)
+                {
+                    robot.rotation = 360.0 - horizontal_theta;
+                }
+                robot.rotation += rotation_offset / lines.size();
 
                 std::stringstream ss;
                 ss << "Robot [";
                 for(int id : robot.ids)
                     ss << id << ",";
-                ss << "]" << rotation << " degrees";
+                ss << "]" << robot.rotation << " degrees";
                 cv::putText(frame, ss.str(), cv::Point(1, 15*(i+1)), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 255), 1);
 
             }
@@ -213,5 +208,48 @@ cv::Point2f normalize(const cv::Point2f &p)
 
 float angle_between(const cv::Point2f& p1, const cv::Point2f& p2)
 {
-    return std::acos(normalize(p1).dot(normalize(p2)));
+    return std::acos(normalize(p1).dot(normalize(p2))) * (180.0/CV_PI);
+}
+
+void Robot::make_lines(std::unordered_map<int, std::vector<cv::Point2f>>& marker_map, std::vector<Line> &out, float& rotation_offset) const
+{
+    rotation_offset = 0.0;
+    bool id_found[4] = {};
+    for(int i = 0; i < 4; ++i)
+        id_found[i] = marker_map.find(ids[i]) != marker_map.end();
+
+    for(int i = 0; i < 4; ++i)
+    {
+        if(id_found[i])
+        {
+            // left & right edges
+            out.push_back(Line{marker_map[ids[i]][0], marker_map[ids[i]][3]});
+            out.push_back(Line{marker_map[ids[i]][1], marker_map[ids[i]][2]});
+
+            // top & bottom edges
+            out.push_back(Line{marker_map[ids[i]][0], marker_map[ids[i]][1]});
+            out.push_back(Line{marker_map[ids[i]][3], marker_map[ids[i]][2]});
+            rotation_offset -= 180.0;
+        }
+    }
+
+    if(id_found[0] && id_found[1])
+    {
+        // connect left & right side gaps
+        out.push_back(Line{marker_map[ids[0]][3], marker_map[ids[1]][0]});
+        out.push_back(Line{marker_map[ids[0]][2], marker_map[ids[1]][1]});
+        // connect left & right side opposing corners
+        out.push_back(Line{marker_map[ids[0]][0], marker_map[ids[1]][3]});
+        out.push_back(Line{marker_map[ids[0]][1], marker_map[ids[1]][2]});
+    }
+
+    if(id_found[2] && id_found[3])
+    {
+        // connect left & right side gaps
+        out.push_back(Line{marker_map[ids[2]][3], marker_map[ids[3]][0]});
+        out.push_back(Line{marker_map[ids[2]][2], marker_map[ids[3]][1]});
+        // connect left & right side opposing corners
+        out.push_back(Line{marker_map[ids[2]][0], marker_map[ids[3]][3]});
+        out.push_back(Line{marker_map[ids[2]][1], marker_map[ids[3]][2]});
+    }
 }
