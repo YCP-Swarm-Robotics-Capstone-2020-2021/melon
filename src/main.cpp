@@ -2,7 +2,7 @@
 #include <sstream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
-
+#include <tclap/CmdLine.h>
 namespace aruco = cv::aruco;
 #define GET_DICT(dict) cv::Ptr<aruco::Dictionary> dict = aruco::getPredefinedDictionary(aruco::dict)
 
@@ -47,9 +47,8 @@ float len(const cv::Point2f& p);
 cv::Point2f normalize(cv::Point2f& p);
 float angle_between(const cv::Point2f& p1, const cv::Point2f& p2);
 
-const int CAMERA_ID = 1;
 const int WAIT_TIME = 1;
-int main()
+int main(int argc, char** argv)
 {
     cv::Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
     GET_DICT(DICT_4X4_50);
@@ -70,13 +69,44 @@ int main()
      });
 
     cv::VideoCapture videoFeed;
-    videoFeed.open(CAMERA_ID);
+    videoFeed.set(cv::CAP_PROP_BUFFERSIZE, 0);
+
+    std::string rtsp_username, rtsp_password;
+    try
+    {
+        TCLAP::CmdLine cmd("melon");
+        TCLAP::ValueArg<std::string> usernameArg("u", "username", "Camera RTSP stream login usernameArg", true, "", "string");
+        TCLAP::ValueArg<std::string> passwordArg("p", "password", "Camera RTSP stream login password", true, "", "string");
+        cmd.add(usernameArg);
+        cmd.add(passwordArg);
+        cmd.parse(argc, argv);
+
+        rtsp_username = usernameArg.getValue();
+        rtsp_password = passwordArg.getValue();
+    }
+    catch (TCLAP::ArgException &e)
+    {
+        std::cerr << "Error parsing RTSP arguments: " << e.error() << " argument: " << e.argId() << std::endl;
+        return -1;
+    }
+//#define NO_GSTREAMER
+#ifdef NO_GSTREAMER
+    videoFeed.open("rtsp://"+rtsp_username+":"+rtsp_password+"@192.168.1.108/cam/realmonitor?channel=1&subtype=0");
+#else
+    // TODO: Look more into gstreamer pipeline components
+    {
+        std::string stream_url = "rtsp://"+rtsp_username+":"+rtsp_password+"@192.168.1.108/cam/realmonitor?channel=1&subtype=0";
+        std::string gstreamer_components = " latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink drop=true";
+        videoFeed.open("rtspsrc location=" + stream_url + gstreamer_components, cv::CAP_GSTREAMER);
+    }
+#endif
+
+    cv::namedWindow("melon");
+    cv::Mat frame;
 
     while(videoFeed.grab())
     {
-        cv::Mat frame;
         videoFeed.retrieve(frame);
-
         Line horizontal_line;
         horizontal_line.p1 = cv::Point2f(frame.size().width, frame.size().height / 2.0);
         horizontal_line.p2 = cv::Point2f(0.0, frame.size().height / 2.0);
@@ -169,6 +199,7 @@ int main()
             }
         }
 
+        cv::resize(frame, frame, cv::Size(1280, 720));
         cv::imshow("melon", frame);
         if(cv::waitKey(WAIT_TIME) == 27)
             break;
@@ -227,9 +258,9 @@ void Robot::make_lines(std::unordered_map<int, std::vector<cv::Point2f>>& marker
             out.push_back(Line{marker_map[ids[i]][1], marker_map[ids[i]][2]});
 
             // top & bottom edges
-            out.push_back(Line{marker_map[ids[i]][0], marker_map[ids[i]][1]});
+/*            out.push_back(Line{marker_map[ids[i]][0], marker_map[ids[i]][1]});
             out.push_back(Line{marker_map[ids[i]][3], marker_map[ids[i]][2]});
-            rotation_offset -= 180.0;
+            rotation_offset -= 180.0;*/
         }
     }
 
