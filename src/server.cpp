@@ -7,6 +7,7 @@
 // Above link gave a "barebone" tcp server that accepts connections/echos back to client whatever they send.
 //
 #include <cstdlib>
+#include <cstdio>
 #include <iostream>
 #include <memory>
 #include <utility>
@@ -23,7 +24,7 @@ public:
     session(tcp::socket socket): socket_(std::move(socket)){}
 
     void start(){
-        std::cout << "connection from: "+socket_.remote_endpoint().address().to_string() << std::endl;
+        std::cout << "new connection from: "+socket_.remote_endpoint().address().to_string() << std::endl;
         do_write("> ", 2);
         do_read();
     }
@@ -44,7 +45,9 @@ private:
                                                     std::cout << "closed connection with: "+socket_.remote_endpoint().address().to_string() << std::endl;
                                                     socket_.close();
                                                 }else{
-                                                    std::cout << current_command << std::endl;
+                                                    std::chrono::time_point now = std::chrono::system_clock::now();
+                                                    std::time_t now_t = std::chrono::system_clock::to_time_t(now);
+                                                    std::cout << socket_.remote_endpoint().address().to_string()+": "+current_command+" @ "+ctime(&now_t);
 
                                                     //if not 'quit', tokenize input by " "
                                                     std::vector<std::string> tokens;
@@ -118,6 +121,13 @@ int main(int argc, char* argv[]){
             std::cerr << "arg1: <port>\n";
             return 1;
         }
+
+        //start logging
+        std::chrono::time_point today = std::chrono::system_clock::now();
+        std::time_t today_t = std::chrono::system_clock::to_time_t(today);
+        std::string logname = std::string(ctime(&today_t))+".log";
+        freopen(logname.c_str(), "w", stdout);
+        std::cout << ctime(&today_t) << std::endl;
 
         asio::io_context io_context;
 
