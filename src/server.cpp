@@ -23,6 +23,7 @@ public:
     session(tcp::socket socket): socket_(std::move(socket)){}
 
     void start(){
+        do_write("> ", 2);
         do_read();
     }
 
@@ -37,21 +38,29 @@ private:
                                         //get command from connection, build command string until new line hit.
                                         for(int i = 0; i < length; i++){
                                             char c = data_[i];
-                                            if(c == '\n'){
+                                            if(c == '\n' || c == '\r'){
                                                 std::cout << current_command << std::endl;
+
+                                                if(current_command.compare("quit") == 0){
+                                                    std::cout << "closing connection" << std::endl;
+                                                    socket_.close();
+                                                }
+
+                                                //as soon as \n or \r is found stop building command
                                                 current_command = "";
+                                                break;
                                             }else{
                                                 current_command += c;
                                             }
                                         }
-                                        do_write(length);
+                                        do_write("> ", 2);
                                     }
                                 });
     }
 
-    void do_write(std::size_t length){
+    void do_write(std::string msg, std::size_t length){
         auto self(shared_from_this());
-        asio::async_write(socket_, asio::buffer(data_, length),
+        asio::async_write(socket_, asio::buffer(msg, length),
                                  [this, self](asio::error_code ec, std::size_t length)
                                  {
                                      if (!ec)
