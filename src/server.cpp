@@ -23,6 +23,7 @@ public:
     session(tcp::socket socket): socket_(std::move(socket)){}
 
     void start(){
+        std::cout << "connection from: "+socket_.remote_endpoint().address().to_string() << std::endl;
         do_write("> ", 2);
         do_read();
     }
@@ -39,12 +40,12 @@ private:
                                         for(int i = 0; i < length; i++){
                                             char c = data_[i];
                                             if(c == '\n' || c == '\r'){
-                                                std::cout << current_command << std::endl;
-
-                                                if(current_command.compare("quit") == 0){
-                                                    std::cout << "closing connection" << std::endl;
+                                                if(current_command == "quit"){
+                                                    std::cout << "closed connection with: "+socket_.remote_endpoint().address().to_string() << std::endl;
                                                     socket_.close();
                                                 }else{
+                                                    std::cout << current_command << std::endl;
+
                                                     //if not 'quit', tokenize input by " "
                                                     std::vector<std::string> tokens;
 
