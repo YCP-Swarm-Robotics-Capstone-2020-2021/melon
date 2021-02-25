@@ -44,6 +44,21 @@ private:
                                                 if(current_command.compare("quit") == 0){
                                                     std::cout << "closing connection" << std::endl;
                                                     socket_.close();
+                                                }else{
+                                                    //if not 'quit', tokenize input by " "
+                                                    std::vector<std::string> tokens;
+
+                                                    std::string delimiter = " ";
+                                                    size_t last = 0;
+                                                    size_t next = 0;
+                                                    while((next = current_command.find(delimiter, last)) != std::string::npos){
+                                                        tokens.push_back(current_command.substr(last, next-last));
+                                                        last = next + 1;
+                                                    }
+                                                    // get last token after loop, since last word won't have space after it
+                                                    tokens.push_back(current_command.substr(last));
+
+                                                    //TODO: pass to some input/token handler class
                                                 }
 
                                                 //as soon as \n or \r is found stop building command
