@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 #else
     // TODO: Look more into gstreamer pipeline components
     {
-        std::string stream_url = "rtsp://"+rtsp_username+":"+rtsp_password+"@192.168.1.108/cam/realmonitor?channel=1&subtype=0";
+        std::string stream_url = "rtsp://"+rtsp_username+":"+rtsp_password+"@10.42.0.35/cam/realmonitor?channel=1&subtype=0";
         std::string gstreamer_components = " latency=0 ! rtph264depay ! h264parse ! decodebin ! videoconvert ! appsink drop=true";
         videoFeed.open("rtspsrc location=" + stream_url + gstreamer_components, cv::CAP_GSTREAMER);
     }
