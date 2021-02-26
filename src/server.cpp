@@ -16,7 +16,8 @@
 
 using asio::ip::tcp;
 
-std::string current_command;
+    std::string get_command(char data[], std::size_t length);
+std::vector<std::string> tokenize_command(std::string command);
 
 class session
         : public std::enable_shared_from_this<session>
@@ -36,41 +37,24 @@ private:
         socket_.async_read_some(asio::buffer(data_, max_length),
                                 [this, self](asio::error_code ec, std::size_t length)
                                 {
-                                    if (!ec){
-                                        //get command from connection, build command string until new line hit.
-                                        for(int i = 0; i < length; i++){
-                                            char c = data_[i];
-                                            if(c == '\n' || c == '\r'){
-                                                if(current_command == "quit"){
-                                                    logger::log_disconnect(socket_.remote_endpoint().address());
-                                                    socket_.close();
-                                                }else{
-                                                    logger::log_input(socket_.remote_endpoint().address(), current_command);
+                                    if (!ec) {
+                                        //get command from data stream
+                                        std::string command = get_command(data_, length);
 
-                                                    //if not 'quit', tokenize input by " "
-                                                    std::vector<std::string> tokens;
+                                        if(command == "quit"){
+                                            logger::log_disconnect(socket_.remote_endpoint().address());
+                                            socket_.close();
+                                        }else {
+                                            logger::log_input(socket_.remote_endpoint().address(), command);
 
-                                                    std::string delimiter = " ";
-                                                    size_t last = 0;
-                                                    size_t next = 0;
-                                                    while((next = current_command.find(delimiter, last)) != std::string::npos){
-                                                        tokens.push_back(current_command.substr(last, next-last));
-                                                        last = next + 1;
-                                                    }
-                                                    // get last token after loop, since last word won't have space after it
-                                                    tokens.push_back(current_command.substr(last));
+                                            //if not 'quit', tokenize input by " "
+                                            std::vector<std::string> tokens = tokenize_command(command);
 
-                                                    //TODO: pass to some input/token handler class
-                                                }
-
-                                                //as soon as \n or \r is found stop building command
-                                                current_command = "";
-                                                break;
-                                            }else{
-                                                current_command += c;
-                                            }
+                                            //TODO: pass to some input/token handler class
                                         }
                                         do_write("> ", 2);
+                                    }else if(ec == asio::error::eof || ec == asio::error::connection_reset){
+                                        logger::log_disconnect(socket_.remote_endpoint().address());
                                     }
                                 });
     }
@@ -111,6 +95,35 @@ private:
 
     tcp::acceptor acceptor_;
 };
+
+std::string get_command(char data[], std::size_t length){
+    std::string current_command;
+    for (int i = 0; i < length; i++) {
+        char c = data[i];
+        if (c == '\n' || c == '\r') {
+            //as soon as \n or \r is found stop building command
+            return current_command;
+        }else{
+            current_command += c;
+        }
+    }
+}
+
+std::vector<std::string> tokenize_command(std::string command){
+    std::vector<std::string> tokens;
+
+    std::string delimiter = " ";
+    size_t last = 0;
+    size_t next = 0;
+    while ((next = command.find(delimiter, last)) !=
+           std::string::npos) {
+        tokens.push_back(command.substr(last, next - last));
+        last = next + 1;
+    }
+    // get last token after loop, since last word won't have space after it
+    tokens.push_back(command.substr(last));
+    return tokens;
+}
 
 int main(int argc, char* argv[]){
     try{
