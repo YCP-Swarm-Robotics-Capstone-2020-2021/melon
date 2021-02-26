@@ -7,14 +7,15 @@
 // Above link gave a "barebone" tcp server that accepts connections/echos back to client whatever they send.
 //
 #include <cstdlib>
-#include <cstdio>
 #include <iostream>
 #include <memory>
 #include <utility>
 #include <asio.hpp>
 #include <stdio.h>
+#include "logger.cpp"
 
 using asio::ip::tcp;
+
 std::string current_command;
 
 class session
@@ -24,7 +25,7 @@ public:
     session(tcp::socket socket): socket_(std::move(socket)){}
 
     void start(){
-        std::cout << "new connection from: "+socket_.remote_endpoint().address().to_string() << std::endl;
+        logger::log_connection(socket_.remote_endpoint().address());
         do_write("> ", 2);
         do_read();
     }
@@ -35,19 +36,16 @@ private:
         socket_.async_read_some(asio::buffer(data_, max_length),
                                 [this, self](asio::error_code ec, std::size_t length)
                                 {
-                                    if (!ec)
-                                    {
+                                    if (!ec){
                                         //get command from connection, build command string until new line hit.
                                         for(int i = 0; i < length; i++){
                                             char c = data_[i];
                                             if(c == '\n' || c == '\r'){
                                                 if(current_command == "quit"){
-                                                    std::cout << "closed connection with: "+socket_.remote_endpoint().address().to_string() << std::endl;
+                                                    logger::log_disconnect(socket_.remote_endpoint().address());
                                                     socket_.close();
                                                 }else{
-                                                    std::chrono::time_point now = std::chrono::system_clock::now();
-                                                    std::time_t now_t = std::chrono::system_clock::to_time_t(now);
-                                                    std::cout << socket_.remote_endpoint().address().to_string()+": "+current_command+" @ "+ctime(&now_t);
+                                                    logger::log_input(socket_.remote_endpoint().address(), current_command);
 
                                                     //if not 'quit', tokenize input by " "
                                                     std::vector<std::string> tokens;
@@ -101,8 +99,7 @@ public:
     }
 
 private:
-    void do_accept()
-    {
+    void do_accept(){
         acceptor_.async_accept([this](asio::error_code ec, tcp::socket socket){
             if (!ec){
                 std::make_shared<session>(std::move(socket))->start();
@@ -123,11 +120,8 @@ int main(int argc, char* argv[]){
         }
 
         //start logging
-        std::chrono::time_point today = std::chrono::system_clock::now();
-        std::time_t today_t = std::chrono::system_clock::to_time_t(today);
-        std::string logname = std::string(ctime(&today_t))+".log";
-        freopen(logname.c_str(), "w", stdout);
-        std::cout << ctime(&today_t) << std::endl;
+        //will open file stream and redirect stdout to said file.
+        logger::start();
 
         asio::io_context io_context;
 
@@ -141,4 +135,3 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
-
