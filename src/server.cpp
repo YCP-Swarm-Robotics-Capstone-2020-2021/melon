@@ -12,7 +12,7 @@
 #include <utility>
 #include <asio.hpp>
 #include <stdio.h>
-#include "StateVariables.h"
+#include "state_variables.h"
 #include "logger.cpp"
 #include "command_handler.cpp"
 
@@ -20,7 +20,7 @@ using asio::ip::tcp;
 
 std::string get_command(char data[], std::size_t length);
 std::vector<std::string> tokenize_command(std::string command);
-StateVariables current_state;
+state_variables current_state;
 
 std::string get_command(char data[], std::size_t length){
     std::string current_command;

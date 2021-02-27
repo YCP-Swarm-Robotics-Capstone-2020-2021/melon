@@ -6,13 +6,13 @@
 #define MELON_COMMAND_HANDLER_H
 
 #include <asio.hpp>
-#include "StateVariables.h"
+#include "state_variables.h"
 
 class command_handler {
 public:
-    static std::string do_command(std::vector<std::string> tokens, StateVariables *current_state);
+    static std::string do_command(std::vector<std::string> tokens, state_variables *current_state);
 private:
-    static std::string robot_command(std::vector<std::string> tokens, StateVariables *current_state);
+    static std::string robot_command(std::vector<std::string> tokens, state_variables *current_state);
 };
 
 

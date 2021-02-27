@@ -9,7 +9,7 @@
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "create", "delete", "list"};
 
-std::string command_handler::do_command(std::vector<std::string> tokens, StateVariables *current_state){
+std::string command_handler::do_command(std::vector<std::string> tokens, state_variables *current_state){
     std::string command = tokens[0];
 
     //check if command requires a target system
@@ -33,7 +33,7 @@ std::string command_handler::do_command(std::vector<std::string> tokens, StateVa
     }
 }
 
-std::string command_handler::robot_command(std::vector<std::string> tokens, StateVariables *current_state){
+std::string command_handler::robot_command(std::vector<std::string> tokens, state_variables *current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
         for(auto const& robot : current_state->robots){
