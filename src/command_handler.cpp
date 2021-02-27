@@ -37,7 +37,11 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
         for(auto const& robot : current_state->robots){
-            response += "\n    "+robot.first+": "+std::to_string(robot.second);
+            response += "\n    "+robot.first+": ";
+            for(auto const& marker_id : robot.second){
+                response += std::to_string(marker_id)+",";
+            }
+            response.pop_back(); // remove hanging ,
         }
         return response;
     }else{

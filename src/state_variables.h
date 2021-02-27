@@ -6,7 +6,7 @@
 #define MELON_STATE_VARIABLES_H
 
 struct state_variables{
-    std::map<std::string, int> robots;
+    std::map<std::string, std::vector<int>> robots;
 };
 
 #endif //MELON_STATE_VARIABLES_H
