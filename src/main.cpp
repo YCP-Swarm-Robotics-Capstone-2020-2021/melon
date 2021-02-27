@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 #else
     // TODO: Look more into gstreamer pipeline components
     {
-        std::string stream_url = "rtsp://"+rtsp_username+":"+rtsp_password+"@10.42.0.35/cam/realmonitor?channel=1&subtype=0";
+        std::string stream_url = "rtsp://"+rtsp_username+":"+rtsp_password+"@10.42.0.36/cam/realmonitor?channel=1&subtype=0";
         std::string gstreamer_components = " latency=0 ! decodebin ! videoconvert ! appsink drop=true";
         videoFeed.open("rtspsrc location=" + stream_url + gstreamer_components);
     }
@@ -77,14 +77,16 @@ int main(int argc, char** argv)
     cv::namedWindow("melon");
     cv::Mat frame;
 
-    cv::Rect roi;
-    cv::Vec2d center;
+    cv::Mat mask;
+    cv::Vec2d centerPixel;
+    cv::Vec2d centerTvec;
+    double unit;
     while(videoFeed.grab())
     {
         videoFeed.retrieve(frame);
 
-        if(roi.x != 0)
-            frame = frame(roi);
+        if(!mask.empty())
+            cv::bitwise_and(mask, frame, frame);
 
         auto detection_result = detect_markers(frame, DICT_4X4_50, params);
         aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
@@ -95,63 +97,106 @@ int main(int argc, char** argv)
             marker_map[detection_result.ids[i]] = detection_result.corners[i];
         }
 
-        std::vector<cv::Vec3d> rvec, tvec;
+        std::vector<cv::Vec3d> rvecs, tvecs;
         if(!detection_result.ids.empty())
         {
-            aruco::estimatePoseSingleMarkers(detection_result.corners, 1.0, camMatrix, distCoeffs, rvec, tvec);
+            aruco::estimatePoseSingleMarkers(detection_result.corners, 1.0, camMatrix, distCoeffs, rvecs, tvecs);
         }
 
-        if(roi.x == 0 && marker_map.find(0) != marker_map.end() && marker_map.find(1) != marker_map.end())
+        // If the mask hasn't been created already and if all corner markers are present
+        if(mask.empty() &&
+            marker_map.find(0) != marker_map.end() &&
+            marker_map.find(1) != marker_map.end() &&
+            marker_map.find(2) != marker_map.end() &&
+            marker_map.find(3) != marker_map.end()
+            )
         {
-            roi.x = marker_map[0][2].x;
-            roi.y = marker_map[0][2].y;
-            roi.width = marker_map[1][0].x - roi.x;
-            roi.height = marker_map[1][0].y - roi.y;
 
-            cv::Vec3d topLeft;
-            cv::Vec3d bottomRight;
+            // Create the mask
+            std::vector<std::vector<cv::Point>> maskEdges;
+            maskEdges.emplace_back();
+            maskEdges[0].push_back(marker_map[0][2]);
+            maskEdges[0].push_back(marker_map[1][3]);
+            maskEdges[0].push_back(marker_map[2][0]);
+            maskEdges[0].push_back(marker_map[3][1]);
 
+            mask = cv::Mat::zeros(frame.size(), frame.type());
+            cv::fillPoly(mask, maskEdges, cv::Scalar(255, 255, 255));
+
+            cv::Vec3d topLeftTvec, topRightTvec, bottomLeftTvec, bottomRightTvec;
             for(int i = 0; i < detection_result.ids.size(); ++i)
             {
                 switch(detection_result.ids[i])
                 {
                     case 0:
-                        topLeft = tvec[i];
+                        topLeftTvec = tvecs[i];
                         break;
                     case 1:
-                        bottomRight = tvec[i];
+                        topRightTvec = tvecs[i];
+                        break;
+                    case 2:
+                        bottomRightTvec = tvecs[i];
+                        break;
+                    case 3:
+                        bottomLeftTvec = tvecs[i];
                         break;
                 }
             }
-            center[0] = (topLeft[0] + bottomRight[0])/2.0;
-            center[1] = (topLeft[1] + bottomRight[1])/2.0;
-        }
 
-        //cv::rectangle(frame, roi, cv::Scalar(0, 255, 0));
-        std::cout << center << std::endl;
-        cv::circle(frame, cv::Point2d(center), 5, cv::Scalar(0, 255, 0));
+            double dist = topRightTvec[0] - topLeftTvec[0];
+            double REAL_DIST = 2.0;
+            unit = REAL_DIST / dist;
+
+/*            centerPixel[0] += marker_map[0][2].x;
+            centerPixel[1] += marker_map[0][2].y;
+            centerPixel[0] += marker_map[1][3].x;
+            centerPixel[1] += marker_map[1][3].y;
+            centerPixel[0] += marker_map[2][0].x;
+            centerPixel[1] += marker_map[2][0].y;
+            centerPixel[0] += marker_map[3][1].x;
+            centerPixel[1] += marker_map[3][1].y;
+            centerPixel[0] /= 4;
+            centerPixel[1] /= 4;*/
+
+            /*for(int i = 0; i < 4; ++i)
+            {
+                centerTvec[0] += tvecs[i][0];
+                centerTvec[1] += tvecs[i][1];
+            }
+            centerTvec[0] /= 4;
+            centerTvec[1] /= 4;*/
+
+            centerPixel[0] = (marker_map[0][2].x + marker_map[2][0].x)/2.0;
+            centerPixel[1] = (marker_map[0][2].y + marker_map[2][0].y)/2.0;
+
+            centerTvec[0] = (topLeftTvec[0] + bottomRightTvec[0])/2.0;
+            centerTvec[1] = (topLeftTvec[1] + bottomRightTvec[1])/2.0;
+
+        }
+        cv::circle(frame, cv::Point2d(centerPixel), 5, cv::Scalar(0, 0, 255), -1);
 
         for(int i = 0; i < detection_result.ids.size(); i++)
         {
-            double w_unit = roi.width / 6.0;
-            double y_unit = roi.height / 6.0;
-
-
-            tvec[i][0] /= w_unit;
-            tvec[i][1] /= y_unit;
+            tvecs[i][0] -= centerTvec[0];
+            tvecs[i][1] -= centerTvec[1];
 
             for(int j = 0; j < 3; ++j)
             {
-                rvec[i][j] *= (180.0 / CV_PI);
+                tvecs[i][j] *= unit;
+                rvecs[i][j] *= (180.0 / CV_PI);
             }
+
+            tvecs[i][0] *= 12.0;
+            tvecs[i][1] *= 12.0;
+
             std::stringstream ss;
             ss << "[id: ";
             ss << detection_result.ids[i];
             ss << "] T: ";
-            ss << tvec[i];
+            ss << tvecs[i];
             ss << " R: ";
-            ss << rvec[i];
-            cv::putText(frame, ss.str(), cv::Point(1, 50*(i+1)), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 255), 1);
+            ss << rvecs[i];
+            cv::putText(frame, ss.str(), cv::Point(1, 50*(i+1)), cv::FONT_HERSHEY_SIMPLEX, 1.3, cv::Scalar(255, 255, 255), 1);
         }
 
         cv::resize(frame, frame, cv::Size(1280, 720));
