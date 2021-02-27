@@ -14,6 +14,7 @@ public:
     static std::time_t get_time();
     static void start();
     static void log_input(asio::ip::address, std::string msg);
+    static void log_output(asio::ip::address, std::string msg);
     static void log_connection(asio::ip::address addr);
     static void log_disconnect(asio::ip::address addr);
 };

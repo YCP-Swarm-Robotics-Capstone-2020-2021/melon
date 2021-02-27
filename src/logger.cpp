@@ -2,6 +2,8 @@
 // Created by tim on 2/25/21.
 //
 
+//ctime() includes a new line character at end
+
 #include "logger.h"
 
 void logger::start(){
@@ -14,6 +16,12 @@ void logger::start(){
 void logger::log_input(asio::ip::address addr, std::string msg) {
     std::time_t now = get_time();
     std::cout << addr.to_string()+": "+msg+" @ "+ctime(&now);
+    std::cout.flush();
+}
+
+void logger::log_output(asio::ip::address addr, std::string msg){
+    std::time_t now = get_time();
+    std::cout << "> to "+addr.to_string()+" @ "+ctime(&now)+"> "+msg+"\n";
     std::cout.flush();
 }
 
