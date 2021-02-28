@@ -33,6 +33,22 @@ std::string command_handler::do_command(std::vector<std::string> tokens, state_v
     }
 }
 
+std::vector<std::string> command_handler::tokenize_values(std::string values){
+    std::vector<std::string> tokens;
+
+    std::string delimiter = ",";
+    size_t last = 0;
+    size_t next = 0;
+    while ((next = values.find(delimiter, last)) !=
+           std::string::npos) {
+        tokens.push_back(values.substr(last, next - last));
+        last = next + 1;
+    }
+    // get last token after loop, since last word won't have comma after it
+    tokens.push_back(values.substr(last));
+    return tokens;
+}
+
 std::string command_handler::robot_command(std::vector<std::string> tokens, state_variables *current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
@@ -44,6 +60,27 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
             response.pop_back(); // remove hanging ,
         }
         return response;
+    }else if(tokens[0] == "set"){
+        if(tokens.size() < 4){
+            return "please provide a robot name and marker ids separated by commas\n    ex: set robot robot_1 1,2,3,4";
+        }
+
+        std::string robot_id = tokens[2];
+        //tokenize by commas
+        std::vector<std::string> values = tokenize_values(tokens[3]);
+        //convert string values to ints
+        std::vector<int> values_as_int;
+        for(int i = 0; i < values.size(); i++){
+            try{
+                values_as_int.push_back(std::stoi(values[i]));
+            }catch(const std::invalid_argument& err){
+                //if user gives a list containing a non int value, let them know
+                return "please provide a comma separated list of integers for '"+robot_id+"'s marker ids";
+            }
+        }
+
+        current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
+        return robot_id+" added with marker values "+tokens[3];
     }else{
         return "command not yet implemented for target system";
     }

@@ -146,8 +146,6 @@ int main(int argc, char* argv[]){
 
         server s(io_context, std::atoi(argv[1]));
 
-        current_state.robots.insert(std::pair<std::string, std::vector<int>>("robot1", {1,2,3,4}));
-
         io_context.run();
     }
     catch (std::exception& e){
