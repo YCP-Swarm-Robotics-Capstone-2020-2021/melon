@@ -81,6 +81,24 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
 
         current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
         return robot_id+" added with marker values "+tokens[3];
+    }else if(tokens[0] == "get"){
+        if(tokens.size() != 3){
+            return "please provide a robot to get\n    ex: get robot robot_1";
+        }
+
+        std::string robot_to_get = tokens[2];
+        auto index = current_state->robots.find(robot_to_get);
+
+        if(index == current_state->robots.end()){
+            return "robot '"+robot_to_get+"' not found";
+        }else{
+            std::string response = robot_to_get+":\n    ";
+            for(auto const& marker_id : index->second){
+                response += std::to_string(marker_id)+",";
+            }
+            response.pop_back(); // remove hanging ,
+            return response;
+        }
     }else if(tokens[0] == "delete"){
         if(tokens.size() != 3){
             return "please provide a robot to delete\n    ex: delete robot robot_1";
