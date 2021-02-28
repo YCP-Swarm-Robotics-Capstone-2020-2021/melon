@@ -61,7 +61,7 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
         }
         return response;
     }else if(tokens[0] == "set"){
-        if(tokens.size() < 4){
+        if(tokens.size() != 4){
             return "please provide a robot name and marker ids separated by commas\n    ex: set robot robot_1 1,2,3,4";
         }
 
@@ -81,6 +81,22 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
 
         current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
         return robot_id+" added with marker values "+tokens[3];
+    }else if(tokens[0] == "delete"){
+        if(tokens.size() != 3){
+            return "please provide a robot to delete\n    ex: delete robot robot_1";
+        }
+
+        //get count of robots before attempting delete
+        int initial_num_robots = current_state->robots.size();
+        std::string robot_to_delete = tokens[2];
+
+        //remove given robot, if size didn't decrease, robot didn't exist
+        current_state->robots.erase(robot_to_delete);
+        if(current_state->robots.size() < initial_num_robots){
+            return "robot '"+robot_to_delete+"' has been removed";
+        }else{
+            return "robot '"+robot_to_delete+"' does not exist";
+        }
     }else{
         return "command not yet implemented for target system";
     }
