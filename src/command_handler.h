@@ -15,9 +15,8 @@ public:
     static std::string do_command(std::vector<std::string> tokens, state_variables *current_state);
 private:
     static std::string robot_system(std::vector<std::string> tokens, state_variables *current_state);
+    static std::string state_system(std::vector<std::string> tokens, state_variables *current_state);
     static std::string help_command();
-    static std::string save_command(std::vector<std::string> tokens, state_variables *current_state);
-    static std::string load_command(std::vector<std::string> tokens, state_variables *current_state);
     static std::vector<std::string> tokenize_values(std::string values);
 };
 

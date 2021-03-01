@@ -7,7 +7,7 @@
 #include "command_handler.h"
 
 //these commands require a target system to be given alongside them
-std::string target_commands[] = {"set", "get", "delete", "list"};
+std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
 std::string command_handler::do_command(std::vector<std::string> tokens, state_variables *current_state){
     std::string command = tokens[0];
@@ -25,13 +25,11 @@ std::string command_handler::do_command(std::vector<std::string> tokens, state_v
         //call corresponding target system func
         if(target_system == "robot"){
             return robot_system(tokens, current_state);
+        }else if(target_system == "state"){
+            return state_system(tokens, current_state);
         }else{
             return "target system: '"+target_system+"' not found";
         }
-    }else if(command == "save"){
-        return save_command(tokens, current_state);
-    }else if(command == "load"){
-        return load_command(tokens, current_state);
     }else if(command == "help"){
         return help_command();
     }else{
@@ -126,58 +124,64 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, state
     }
 }
 
+std::string command_handler::state_system(std::vector<std::string> tokens, state_variables *current_state){
+    if(tokens[0] == "save"){
+        if(tokens.size() != 3){
+            return "please provide a name to save the current state as\n    ex: save state config1";
+        }
+
+        std::string save_name = tokens[2];
+
+        //save "robots" map
+        State *state_to_save = new State;
+        for(auto const& robot : current_state->robots){
+            for(auto const& marker_id : robot.second)
+                (*state_to_save->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
+        }
+
+        std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+        state_to_save->SerializeToOstream(&output);
+
+        return "current state saved as '"+save_name+"'";
+    }else if(tokens[0] == "load"){
+        if(tokens.size() != 3){
+            return "please provide a saved state name to load\n    ex: load state config1";
+        }
+
+        std::string load_name = tokens[2];
+
+        State *state_to_load = new State;
+        std::fstream input(load_name, std::ios::in | std::ios::binary);
+        state_to_load->ParseFromIstream(&input);
+
+        //clear robots state variable, fill from loaded State instance above
+        current_state->robots.clear();
+        for(auto const &robot : state_to_load->robots()){
+            std::vector<int> marker_ids_to_save;
+            for(auto const &marker_id : robot.second.ids()){
+                marker_ids_to_save.push_back(marker_id);
+            }
+            current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
+        }
+
+        return "current state loaded from '"+load_name+"'";
+    }else{
+        return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
+    }
+}
+
 std::string command_handler::help_command(){
     std::string response = "current target systems:\n";
-    response += "    robot\n";
-    response += "for these target systems you can use the commmands:\n";
+    response += "    robot, state\n\n";
+
+    response += "for the 'robot' system you can use the commands:\n";
     response += "    get, set, list, delete\n";
-    response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4'\n";
-    response += "intended usage will be clarified if used incorrectly.\n\n";
-    response += "you can also save/load the current state using the 'save' and 'load' command respectively\n";
-    response += "    ex: 'save config1' or 'load config1'";
+    response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4'\n\n";
+
+    response += "for the 'state' system you can use the commands:\n";
+    response += "    save, load\n";
+    response += "ex: 'save state config1' or 'load state config1'\n\n";
+
+    response += "intended usage for each target system will be clarified if used incorrectly.\n\n";
     return response;
-}
-
-std::string command_handler::save_command(std::vector<std::string> tokens, state_variables *current_state){
-    if(tokens.size() != 2){
-        return "please provide a name to save the current state as\n    ex: save config1";
-    }
-
-    std::string save_name = tokens[1];
-
-    //save "robots" map
-    State *state_to_save = new State;
-    for(auto const& robot : current_state->robots){
-        for(auto const& marker_id : robot.second)
-        (*state_to_save->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
-    }
-
-    std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
-    state_to_save->SerializeToOstream(&output);
-
-    return "current state saved as '"+save_name+"'";
-}
-
-std::string command_handler::load_command(std::vector<std::string> tokens, state_variables *current_state){
-    if(tokens.size() != 2){
-        return "please provide a saved state name to load\n    ex: load config1";
-    }
-
-    std::string load_name = tokens[1];
-
-    State *state_to_load = new State;
-    std::fstream input(load_name, std::ios::in | std::ios::binary);
-    state_to_load->ParseFromIstream(&input);
-
-    //clear robots state variable, fill from loaded State instance above
-    current_state->robots.clear();
-    for(auto const &robot : state_to_load->robots()){
-        std::vector<int> marker_ids_to_save;
-        for(auto const &marker_id : robot.second.ids()){
-            marker_ids_to_save.push_back(marker_id);
-        }
-        current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
-    }
-
-    return "current state loaded from '"+load_name+"'";
 }
