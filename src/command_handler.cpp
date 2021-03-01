@@ -24,7 +24,7 @@ std::string command_handler::do_command(std::vector<std::string> tokens, state_v
 
         //call corresponding target system func
         if(target_system == "robot"){
-            return robot_command(tokens, current_state);
+            return robot_system(tokens, current_state);
         }else{
             return "target system: '"+target_system+"' not found";
         }
@@ -55,7 +55,7 @@ std::vector<std::string> command_handler::tokenize_values(std::string values){
     return tokens;
 }
 
-std::string command_handler::robot_command(std::vector<std::string> tokens, state_variables *current_state){
+std::string command_handler::robot_system(std::vector<std::string> tokens, state_variables *current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
         for(auto const& robot : current_state->robots){
