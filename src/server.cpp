@@ -76,6 +76,10 @@ private:
                                         if(command == "quit"){
                                             logger::log_disconnect(socket_.remote_endpoint().address());
                                             socket_.close();
+                                        }else if(command == "clear"){
+                                            logger::log_input(socket_.remote_endpoint().address(), command);
+                                            std::string clear_string = "\033[2J\033[H";
+                                            do_write(clear_string, clear_string.size());
                                         }else {
                                             logger::log_input(socket_.remote_endpoint().address(), command);
 

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message MarkerIds{
+  repeated int32 ids = 1;
+}
+
+message State {
+  map<string, MarkerIds> robots = 1;
+}

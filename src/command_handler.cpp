@@ -28,6 +28,10 @@ std::string command_handler::do_command(std::vector<std::string> tokens, state_v
         }else{
             return "target system: '"+target_system+"' not found";
         }
+    }else if(command == "save"){
+        return save_command(tokens, current_state);
+    }else if(command == "load"){
+        return load_command(tokens, current_state);
     }else{
         return "command: '"+command+"' not found";
     }
@@ -118,4 +122,48 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
     }else{
         return "command not yet implemented for target system";
     }
+}
+
+std::string command_handler::save_command(std::vector<std::string> tokens, state_variables *current_state){
+    if(tokens.size() != 2){
+        return "please provide a name to save the current state as\n    ex: save config1";
+    }
+
+    std::string save_name = tokens[1];
+
+    //save "robots" map
+    State *state_to_save = new State;
+    for(auto const& robot : current_state->robots){
+        for(auto const& marker_id : robot.second)
+        (*state_to_save->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
+    }
+
+    std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+    state_to_save->SerializeToOstream(&output);
+
+    return "current state saved as '"+save_name+"'";
+}
+
+std::string command_handler::load_command(std::vector<std::string> tokens, state_variables *current_state){
+    if(tokens.size() != 2){
+        return "please provide a saved state name to load\n    ex: load config1";
+    }
+
+    std::string load_name = tokens[1];
+
+    State *state_to_load = new State;
+    std::fstream input(load_name, std::ios::in | std::ios::binary);
+    state_to_load->ParseFromIstream(&input);
+
+    //clear robots state variable, fill from loaded State instance above
+    current_state->robots.clear();
+    for(auto const &robot : state_to_load->robots()){
+        std::vector<int> marker_ids_to_save;
+        for(auto const &marker_id : robot.second.ids()){
+            marker_ids_to_save.push_back(marker_id);
+        }
+        current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
+    }
+
+    return "current state loaded from '"+load_name+"'";
 }
