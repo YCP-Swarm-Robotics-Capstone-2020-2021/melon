@@ -127,10 +127,14 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, state
 std::string command_handler::state_system(std::vector<std::string> tokens, state_variables *current_state){
     if(tokens[0] == "save"){
         if(tokens.size() != 3){
-            return "please provide a name to save the current state as\n    ex: save state config1";
+            return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
         }
 
         std::string save_name = tokens[2];
+
+        if(save_name == "current"){
+            return "state name '"+save_name+"' cannot be used";
+        }
 
         //save "robots" map
         State *state_to_save = new State;
@@ -165,6 +169,23 @@ std::string command_handler::state_system(std::vector<std::string> tokens, state
         }
 
         return "current state loaded from '"+load_name+"'";
+    }else if(tokens[0] == "delete"){
+        if(tokens.size() != 3){
+            return "please provide a saved state to delete\n    ex: delete state config1";
+        }
+
+        std::string state_to_delete = tokens[2];
+
+        if(state_to_delete == "current"){
+            current_state->robots.clear();
+            return "current state has been cleared";
+        }else{
+            if(remove(state_to_delete.c_str()) != 0){
+                return "saved state '"+state_to_delete+"' does not exist";
+            }else{
+                return "state '"+state_to_delete+"' has been removed";
+            }
+        }
     }else{
         return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
     }
@@ -179,8 +200,8 @@ std::string command_handler::help_command(){
     response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4'\n\n";
 
     response += "for the 'state' system you can use the commands:\n";
-    response += "    save, load\n";
-    response += "ex: 'save state config1' or 'load state config1'\n\n";
+    response += "    save, load, delete\n";
+    response += "ex: 'save state config1' or 'load state config1' or 'delete state config1'\n\n";
 
     response += "intended usage for each target system will be clarified if used incorrectly.\n\n";
     return response;

@@ -7,6 +7,7 @@
 
 #include <asio.hpp>
 #include <fstream>
+#include <stdio.h>
 #include "state_variables.h"
 #include "state.pb.h"
 
