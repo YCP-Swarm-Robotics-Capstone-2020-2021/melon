@@ -7,7 +7,7 @@
 #include "command_handler.h"
 
 //these commands require a target system to be given alongside them
-std::string target_commands[] = {"set", "get", "create", "delete", "list"};
+std::string target_commands[] = {"set", "get", "delete", "list"};
 
 std::string command_handler::do_command(std::vector<std::string> tokens, state_variables *current_state){
     std::string command = tokens[0];
@@ -32,6 +32,8 @@ std::string command_handler::do_command(std::vector<std::string> tokens, state_v
         return save_command(tokens, current_state);
     }else if(command == "load"){
         return load_command(tokens, current_state);
+    }else if(command == "help"){
+        return help_command();
     }else{
         return "command: '"+command+"' not found";
     }
@@ -120,8 +122,20 @@ std::string command_handler::robot_command(std::vector<std::string> tokens, stat
             return "robot '"+robot_to_delete+"' does not exist";
         }
     }else{
-        return "command not yet implemented for target system";
+        return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
     }
+}
+
+std::string command_handler::help_command(){
+    std::string response = "current target systems:\n";
+    response += "    robot\n";
+    response += "for these target systems you can use the commmands:\n";
+    response += "    get, set, list, delete\n";
+    response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4'\n";
+    response += "intended usage will be clarified if used incorrectly.\n\n";
+    response += "you can also save/load the current state using the 'save' and 'load' command respectively\n";
+    response += "    ex: 'save config1' or 'load config1'";
+    return response;
 }
 
 std::string command_handler::save_command(std::vector<std::string> tokens, state_variables *current_state){
