@@ -132,6 +132,7 @@ std::string command_handler::state_system(std::vector<std::string> tokens, state
 
         std::string save_name = tokens[2];
 
+        //don't allow save_name to be 'current' as that is a keyword that is used in this target sys.
         if(save_name == "current"){
             return "state name '"+save_name+"' cannot be used";
         }
@@ -176,6 +177,8 @@ std::string command_handler::state_system(std::vector<std::string> tokens, state
 
         std::string state_to_delete = tokens[2];
 
+        //if value is 'current', clear out current state
+        //if not, attempt to delete save state's file
         if(state_to_delete == "current"){
             current_state->robots.clear();
             return "current state has been cleared";
