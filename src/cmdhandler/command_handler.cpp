@@ -138,7 +138,7 @@ std::string command_handler::state_system(std::vector<std::string> tokens, state
         }
 
         //save "robots" map
-        State *state_to_save = new State;
+        State *state_to_save = new State();
         for(auto const& robot : current_state->robots){
             for(auto const& marker_id : robot.second)
                 (*state_to_save->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
@@ -155,7 +155,7 @@ std::string command_handler::state_system(std::vector<std::string> tokens, state
 
         std::string load_name = tokens[2];
 
-        State *state_to_load = new State;
+        State *state_to_load = new State();
         std::fstream input(load_name, std::ios::in | std::ios::binary);
         state_to_load->ParseFromIstream(&input);
 

@@ -1,229 +1,67 @@
-#include <iostream>
-#include <sstream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/aruco.hpp>
-#include <tclap/CmdLine.h>
-#include <opencv2/aruco/charuco.hpp>
-namespace aruco = cv::aruco;
-#define GET_DICT(dict) cv::Ptr<aruco::Dictionary> dict = aruco::getPredefinedDictionary(aruco::dict)
+#include "cmdhandler/logger.h"
+#include "cmdhandler/server.h"
+#include <thread>
 
-struct DetectionResult
+
+void server_thread(int argc, char** argv, std::shared_ptr<global_state> state)
 {
-    cv::Ptr<aruco::Dictionary> dictionary;
-    cv::Ptr<aruco::DetectorParameters> parameters;
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners, rejected_corners;
-};
-
-struct DetectionResult detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters);
-const int WAIT_TIME = 1;
-int main(int argc, char** argv)
-{
-    //cv::Mat camMatrix = (cv::Mat_<double>(3, 3) << 1926.563579128611, 0, 1380.786498984395, 0, 1895.646635370541, 745.4521161723168, 0, 0, 1);
-    //cv::Mat distCoeffs = (cv::Mat_<double>(1, 5) << -0.5841261114485079, 0.5046795564194936, 0.01825235358115559, -0.009669823262374196, -0.2218050423802391);
-
-/*    cv::Mat camMatrix = (cv::Mat_<double>(3, 3) << 2.9653741646688441e+03, 0., 1.4270650454469758e+03, 0.,
-            2.9667567356365648e+03, 7.1224694118195373e+02, 0., 0., 1.);
-    cv::Mat distCoeffs = (cv::Mat_<double>(1, 5) << -4.9156607356228843e-01, 6.3973165223843342e-01,
-            2.9296922331222201e-03, -2.5833647279891840e-03,
-            -4.0674636913688195e-01);*/
-
-    cv::Mat camMatrix = (cv::Mat_<double>(3, 3) << 2.9785179800037645e+03, 0., 1.4119247677872459e+03, 0.,
-            2.9751162563958610e+03, 7.0447947019337823e+02, 0., 0., 1.);
-    cv::Mat distCoeffs = (cv::Mat_<double>(1, 5) << -4.2034395258899948e-01, 3.9075688853883211e-02,
-            2.5246798597957452e-03, -2.6197970279735407e-03,
-            3.3412521345259510e-01);
-
-    camMatrix.at<double>(0, 0) *= (1920.0 / 2688.0);
-    camMatrix.at<double>(1, 1) *= (1080.0 / 1520.0);
-
-    cv::Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
-    GET_DICT(DICT_4X4_50);
-    GET_DICT(DICT_6X6_250);
-
-    cv::VideoCapture videoFeed;
-    videoFeed.set(cv::CAP_PROP_BUFFERSIZE, 0);
-
-    std::string rtsp_username, rtsp_password;
-    try
-    {
-        TCLAP::CmdLine cmd("melon");
-        TCLAP::ValueArg<std::string> usernameArg("u", "username", "Camera RTSP stream login username", true, "", "string");
-        TCLAP::ValueArg<std::string> passwordArg("p", "password", "Camera RTSP stream login password", true, "", "string");
-        cmd.add(usernameArg);
-        cmd.add(passwordArg);
-        cmd.parse(argc, argv);
-
-        rtsp_username = usernameArg.getValue();
-        rtsp_password = passwordArg.getValue();
-    }
-    catch (TCLAP::ArgException &e)
-    {
-        std::cerr << "Error parsing RTSP arguments: " << e.error() << " argument: " << e.argId() << std::endl;
-        return -1;
-    }
-//#define NO_GSTREAMER
-#ifdef NO_GSTREAMER
-    videoFeed.open("rtsp://"+rtsp_username+":"+rtsp_password+"@192.168.1.108/cam/realmonitor?channel=1&subtype=0");
-#else
-    // TODO: Look more into gstreamer pipeline components
-    {
-        std::string stream_url = "rtsp://"+rtsp_username+":"+rtsp_password+"@10.42.0.36/cam/realmonitor?channel=1&subtype=0";
-        std::string gstreamer_components = " latency=0 ! decodebin ! videoconvert ! appsink drop=true";
-        videoFeed.open("rtspsrc location=" + stream_url + gstreamer_components);
-    }
-#endif
-
-    cv::namedWindow("melon");
-    cv::Mat frame;
-
-    cv::Mat mask;
-    cv::Vec2d centerPixel;
-    cv::Vec2d centerTvec;
-    double unit;
-    while(videoFeed.grab())
-    {
-        videoFeed.retrieve(frame);
-
-        if(!mask.empty())
-            cv::bitwise_and(mask, frame, frame);
-
-        auto detection_result = detect_markers(frame, DICT_4X4_50, params);
-        aruco::drawDetectedMarkers(frame, detection_result.corners, detection_result.ids);
-
-        std::unordered_map<int, std::vector<cv::Point2f>> marker_map;
-        for(int i = 0; i < detection_result.ids.size(); ++i)
-        {
-            marker_map[detection_result.ids[i]] = detection_result.corners[i];
+    try{
+        if (argc != 2){
+            std::cerr << "arg1: <port>\n";
+            return;
         }
 
-        std::vector<cv::Vec3d> rvecs, tvecs;
-        if(!detection_result.ids.empty())
-        {
-            aruco::estimatePoseSingleMarkers(detection_result.corners, 1.0, camMatrix, distCoeffs, rvecs, tvecs);
-        }
+        asio::io_context io_context;
 
-        // If the mask hasn't been created already and if all corner markers are present
-        if(mask.empty() &&
-            marker_map.find(0) != marker_map.end() &&
-            marker_map.find(1) != marker_map.end() &&
-            marker_map.find(2) != marker_map.end() &&
-            marker_map.find(3) != marker_map.end()
-            )
-        {
+        server s(io_context, std::atoi(argv[1]), state);
 
-            // Create the mask
-            std::vector<std::vector<cv::Point>> maskEdges;
-            maskEdges.emplace_back();
-            maskEdges[0].push_back(marker_map[0][2]);
-            maskEdges[0].push_back(marker_map[1][3]);
-            maskEdges[0].push_back(marker_map[2][0]);
-            maskEdges[0].push_back(marker_map[3][1]);
-
-            mask = cv::Mat::zeros(frame.size(), frame.type());
-            cv::fillPoly(mask, maskEdges, cv::Scalar(255, 255, 255));
-
-            cv::Vec3d topLeftTvec, topRightTvec, bottomLeftTvec, bottomRightTvec;
-            for(int i = 0; i < detection_result.ids.size(); ++i)
-            {
-                switch(detection_result.ids[i])
-                {
-                    case 0:
-                        topLeftTvec = tvecs[i];
-                        break;
-                    case 1:
-                        topRightTvec = tvecs[i];
-                        break;
-                    case 2:
-                        bottomRightTvec = tvecs[i];
-                        break;
-                    case 3:
-                        bottomLeftTvec = tvecs[i];
-                        break;
-                }
-            }
-
-            double dist = topRightTvec[0] - topLeftTvec[0];
-            double REAL_DIST = 2.0;
-            unit = REAL_DIST / dist;
-
-/*            centerPixel[0] += marker_map[0][2].x;
-            centerPixel[1] += marker_map[0][2].y;
-            centerPixel[0] += marker_map[1][3].x;
-            centerPixel[1] += marker_map[1][3].y;
-            centerPixel[0] += marker_map[2][0].x;
-            centerPixel[1] += marker_map[2][0].y;
-            centerPixel[0] += marker_map[3][1].x;
-            centerPixel[1] += marker_map[3][1].y;
-            centerPixel[0] /= 4;
-            centerPixel[1] /= 4;*/
-
-            /*for(int i = 0; i < 4; ++i)
-            {
-                centerTvec[0] += tvecs[i][0];
-                centerTvec[1] += tvecs[i][1];
-            }
-            centerTvec[0] /= 4;
-            centerTvec[1] /= 4;*/
-
-            centerPixel[0] = (marker_map[0][2].x + marker_map[2][0].x)/2.0;
-            centerPixel[1] = (marker_map[0][2].y + marker_map[2][0].y)/2.0;
-
-            centerTvec[0] = (topLeftTvec[0] + bottomRightTvec[0])/2.0;
-            centerTvec[1] = (topLeftTvec[1] + bottomRightTvec[1])/2.0;
-
-        }
-        cv::circle(frame, cv::Point2d(centerPixel), 5, cv::Scalar(0, 0, 255), -1);
-
-        for(int i = 0; i < detection_result.ids.size(); i++)
-        {
-            tvecs[i][0] -= centerTvec[0];
-            tvecs[i][1] -= centerTvec[1];
-
-            for(int j = 0; j < 3; ++j)
-            {
-                tvecs[i][j] *= unit;
-                rvecs[i][j] *= (180.0 / CV_PI);
-            }
-
-            tvecs[i][0] *= 12.0;
-            tvecs[i][1] *= 12.0;
-
-            std::stringstream ss;
-            ss << "[id: ";
-            ss << detection_result.ids[i];
-            ss << "] T: ";
-            ss << tvecs[i];
-            ss << " R: ";
-            ss << rvecs[i];
-            cv::putText(frame, ss.str(), cv::Point(1, 50*(i+1)), cv::FONT_HERSHEY_SIMPLEX, 1.3, cv::Scalar(255, 255, 255), 1);
-        }
-
-        cv::resize(frame, frame, cv::Size(1280, 720));
-
-        cv::imshow("melon", frame);
-
-        if(cv::waitKey(WAIT_TIME) == 27)
-            break;
+        io_context.run();
     }
-
-    return 0;
+    catch (std::exception& e){
+        std::cerr << "Exception: " << e.what() << "\n";
+    }
 }
 
-struct DetectionResult detect_markers(const cv::Mat& image, cv::Ptr<aruco::Dictionary> dictionary, cv::Ptr<aruco::DetectorParameters> parameters)
+void breakme_thread(std::shared_ptr<global_state> state)
 {
-    struct DetectionResult detected_markers =
+    state_variables variables;
+    while(true)
+    {
+        if(state->flag.load())
+        {
+            state->mutex.lock();
+
+            variables = state->variables;
+
+            for(auto elem : state->variables.robots)
             {
-                    .dictionary = dictionary,
-                    .parameters = parameters,
-            };
-    aruco::detectMarkers(
-            image,
-            dictionary,
-            detected_markers.corners,
-            detected_markers.ids,
-            parameters,
-            detected_markers.rejected_corners
-    );
-    return detected_markers;
+                std::cout << elem.first << " ";
+                for(auto i : elem.second)
+                {
+                    std::cout << i << ", ";
+                }
+                std::cout << std::endl;
+            }
+            state->flag.store(false);
+            state->mutex.unlock();
+        }
+        else
+        {
+            //std::cout << "no update" << std::endl;
+        }
+    }
+}
+
+int main(int argc, char** argv)
+{
+    //start logging
+    //will open file stream and redirect stdout to said file.
+    //logger::start();
+    std::shared_ptr<global_state> state = std::make_shared<global_state>();
+
+    std::thread server_t(server_thread, argc, argv, state);
+    std::thread breakme(breakme_thread, state);
+
+    server_t.join();
+    return 0;
 }

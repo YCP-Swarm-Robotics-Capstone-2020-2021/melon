@@ -7,9 +7,7 @@ SET( CMAKE_CXX_FLAGS  "-pthread -lprotobuf -lpthread")
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-
-#add_executable(melon src/main.cpp)
-#add_executable(melon src/main_calibration.cpp)
-add_executable(melon src/server.cpp src/state.pb.cc)
+file(GLOB_RECURSE SRC "${CMAKE_SOURCE_DIR}/src/*.c" "${CMAKE_SOURCE_DIR}/src/*.cc" "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/src/*.h" "${CMAKE_SOURCE_DIR}/src/*.hpp" )
+add_executable(melon ${SRC})
 
 target_link_libraries(melon ${OpenCV_LIBS})
