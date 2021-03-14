@@ -1,0 +1,4 @@
+#ifndef MELON_COMMANDS_H
+#define MELON_COMMANDS_H
+
+#endif //MELON_COMMANDS_H

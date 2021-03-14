@@ -5,8 +5,9 @@
 #ifndef MELON_STATE_VARIABLES_H
 #define MELON_STATE_VARIABLES_H
 
+#include <unordered_map>
 struct state_variables{
-    std::map<std::string, std::vector<int>> robots;
+    std::unordered_map<std::string, std::vector<int>> robots;
 };
 
 #endif //MELON_STATE_VARIABLES_H
