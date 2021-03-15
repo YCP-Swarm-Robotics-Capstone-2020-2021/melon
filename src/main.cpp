@@ -27,7 +27,6 @@ int main(int argc, char** argv)
         ss << "./logs/log-";
         ss << std::put_time(std::localtime(&now_c), "%m-%d-%Y_%H-%M-%S");
         ss << ".txt";
-        std::cout << ss.str() << std::endl;
 
         // Create a multi-threaded, combined logger that prints to both console and a file
         std::vector<spdlog::sink_ptr> sinks;
