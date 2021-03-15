@@ -7,14 +7,14 @@
 #include <utility>
 #include <asio.hpp>
 #include <stdio.h>
-#include "state_variables.h"
-#include "global_state.h"
+#include "statevariables.h"
+#include "globalstate.h"
 
 using asio::ip::tcp;
 class session : public std::enable_shared_from_this<session>
 {
 public:
-    session(tcp::socket socket, std::shared_ptr<global_state> state);
+    session(tcp::socket socket, std::shared_ptr<GlobalState> state);
 
     void start();
 private:
@@ -28,7 +28,7 @@ private:
     tcp::socket socket_;
     enum { max_length = 1024 };
     char data_[max_length];
-    std::shared_ptr<global_state> m_state;
+    std::shared_ptr<GlobalState> m_state;
 };
 
 #endif //MELON_SESSION_H

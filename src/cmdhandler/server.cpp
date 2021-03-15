@@ -1,6 +1,6 @@
 #include "server.h"
 
-server::server(asio::io_context& io_context, short port, std::shared_ptr<global_state> state) : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)), m_global_state(state)
+server::server(asio::io_context& io_context, short port, std::shared_ptr<GlobalState> state) : acceptor_(io_context, tcp::endpoint(tcp::v4(), port)), m_global_state(state)
 {
     do_accept();
 }

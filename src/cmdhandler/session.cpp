@@ -2,7 +2,7 @@
 #include "logger.h"
 #include "command_handler.h"
 
-session::session(tcp::socket socket, std::shared_ptr<global_state> state): socket_(std::move(socket)), m_state(state)
+session::session(tcp::socket socket, std::shared_ptr<GlobalState> state): socket_(std::move(socket)), m_state(state)
 {
 
 }
@@ -50,8 +50,6 @@ void session::do_read()
         socket_.async_read_some(asio::buffer(data_, max_length),
                                 [this, self](asio::error_code ec, std::size_t length)
                                 {
-                                    m_state->mutex.lock();
-
                                     if (!ec) {
                                         //get command from data stream
                                         std::string command = get_command(data_, length);
@@ -69,8 +67,11 @@ void session::do_read()
                                             //if not 'quit', tokenize input by " "
                                             std::vector<std::string> tokens = tokenize_command(command);
 
+                                            StateVariables local_variables = m_state->get_state();
                                             //TODO: pass to some input/token handler class
-                                            std::string response = command_handler::do_command(tokens, &(m_state->variables));
+                                            std::string response = command_handler::do_command(tokens, &local_variables);
+                                            m_state->receive(local_variables);
+
                                             logger::log_output(socket_.remote_endpoint().address(), response);
                                             do_write(response+"\n", response.length()+2);
                                         }
@@ -78,11 +79,6 @@ void session::do_read()
                                     }else if(ec == asio::error::eof || ec == asio::error::connection_reset){
                                         logger::log_disconnect(socket_.remote_endpoint().address());
                                     }
-
-                                    // TODO: THIS CURRENTLY SIGNIFIES THAT AN UPDATE IS AVAILABLE EVERYTIME A CLIENT CONNECTS,
-                                    //       NOT ONLY WHEN AN UPDATE IS ACTUALLY AVAILABLE
-                                    m_state->flag.store(true);
-                                    m_state->mutex.unlock();
                                 });
 
 }

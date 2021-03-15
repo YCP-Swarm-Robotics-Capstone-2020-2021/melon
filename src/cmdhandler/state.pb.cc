@@ -5,55 +5,59 @@
 
 #include <algorithm>
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/stubs/port.h>
 #include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/wire_format_lite_inl.h>
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/wire_format_lite.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/generated_message_reflection.h>
 #include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/wire_format.h>
-// This is a temporary google only hack
-#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-#include "third_party/protobuf/version.h"
-#endif
 // @@protoc_insertion_point(includes)
-
-namespace protobuf_state_2eproto {
-extern PROTOBUF_INTERNAL_EXPORT_protobuf_state_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_MarkerIds;
-extern PROTOBUF_INTERNAL_EXPORT_protobuf_state_2eproto ::google::protobuf::internal::SCCInfo<1> scc_info_State_RobotsEntry_DoNotUse;
-}  // namespace protobuf_state_2eproto
+#include <google/protobuf/port_def.inc>
+extern PROTOBUF_INTERNAL_EXPORT_state_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_MarkerIds_state_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_state_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_State_RobotsEntry_DoNotUse_state_2eproto;
 class MarkerIdsDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<MarkerIds>
-      _instance;
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<MarkerIds> _instance;
 } _MarkerIds_default_instance_;
 class State_RobotsEntry_DoNotUseDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<State_RobotsEntry_DoNotUse>
-      _instance;
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<State_RobotsEntry_DoNotUse> _instance;
 } _State_RobotsEntry_DoNotUse_default_instance_;
 class StateDefaultTypeInternal {
  public:
-  ::google::protobuf::internal::ExplicitlyConstructed<State>
-      _instance;
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<State> _instance;
 } _State_default_instance_;
-namespace protobuf_state_2eproto {
-static void InitDefaultsMarkerIds() {
+static void InitDefaultsscc_info_MarkerIds_state_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
     void* ptr = &::_MarkerIds_default_instance_;
     new (ptr) ::MarkerIds();
-    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
   ::MarkerIds::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_MarkerIds =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsMarkerIds}, {}};
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_MarkerIds_state_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_MarkerIds_state_2eproto}, {}};
 
-static void InitDefaultsState_RobotsEntry_DoNotUse() {
+static void InitDefaultsscc_info_State_state_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::_State_default_instance_;
+    new (ptr) ::State();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::State::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_State_state_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_State_state_2eproto}, {
+      &scc_info_State_RobotsEntry_DoNotUse_state_2eproto.base,}};
+
+static void InitDefaultsscc_info_State_RobotsEntry_DoNotUse_state_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
@@ -63,132 +67,92 @@ static void InitDefaultsState_RobotsEntry_DoNotUse() {
   ::State_RobotsEntry_DoNotUse::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<1> scc_info_State_RobotsEntry_DoNotUse =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsState_RobotsEntry_DoNotUse}, {
-      &protobuf_state_2eproto::scc_info_MarkerIds.base,}};
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_State_RobotsEntry_DoNotUse_state_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_State_RobotsEntry_DoNotUse_state_2eproto}, {
+      &scc_info_MarkerIds_state_2eproto.base,}};
 
-static void InitDefaultsState() {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_state_2eproto[3];
+static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_state_2eproto = nullptr;
+static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_state_2eproto = nullptr;
 
-  {
-    void* ptr = &::_State_default_instance_;
-    new (ptr) ::State();
-    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
-  }
-  ::State::InitAsDefaultInstance();
-}
-
-::google::protobuf::internal::SCCInfo<1> scc_info_State =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsState}, {
-      &protobuf_state_2eproto::scc_info_State_RobotsEntry_DoNotUse.base,}};
-
-void InitDefaults() {
-  ::google::protobuf::internal::InitSCC(&scc_info_MarkerIds.base);
-  ::google::protobuf::internal::InitSCC(&scc_info_State_RobotsEntry_DoNotUse.base);
-  ::google::protobuf::internal::InitSCC(&scc_info_State.base);
-}
-
-::google::protobuf::Metadata file_level_metadata[3];
-
-const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_state_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MarkerIds, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::MarkerIds, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MarkerIds, ids_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, _has_bits_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::MarkerIds, ids_),
+  PROTOBUF_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, key_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, value_),
+  PROTOBUF_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::State_RobotsEntry_DoNotUse, value_),
   0,
   1,
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::State, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::State, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::State, robots_),
+  PROTOBUF_FIELD_OFFSET(::State, robots_),
 };
-static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::MarkerIds)},
   { 6, 13, sizeof(::State_RobotsEntry_DoNotUse)},
   { 15, -1, sizeof(::State)},
 };
 
-static ::google::protobuf::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::google::protobuf::Message*>(&::_MarkerIds_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::_State_RobotsEntry_DoNotUse_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::_State_default_instance_),
+static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_MarkerIds_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_State_RobotsEntry_DoNotUse_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_State_default_instance_),
 };
 
-void protobuf_AssignDescriptors() {
-  AddDescriptors();
-  AssignDescriptors(
-      "state.proto", schemas, file_default_instances, TableStruct::offsets,
-      file_level_metadata, NULL, NULL);
-}
+const char descriptor_table_protodef_state_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
+  "\n\013state.proto\"\030\n\tMarkerIds\022\013\n\003ids\030\001 \003(\005\""
+  "f\n\005State\022\"\n\006robots\030\001 \003(\0132\022.State.RobotsE"
+  "ntry\0329\n\013RobotsEntry\022\013\n\003key\030\001 \001(\t\022\031\n\005valu"
+  "e\030\002 \001(\0132\n.MarkerIds:\0028\001b\006proto3"
+  ;
+static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_state_2eproto_deps[1] = {
+};
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_state_2eproto_sccs[3] = {
+  &scc_info_MarkerIds_state_2eproto.base,
+  &scc_info_State_state_2eproto.base,
+  &scc_info_State_RobotsEntry_DoNotUse_state_2eproto.base,
+};
+static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_state_2eproto_once;
+const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_state_2eproto = {
+  false, false, descriptor_table_protodef_state_2eproto, "state.proto", 151,
+  &descriptor_table_state_2eproto_once, descriptor_table_state_2eproto_sccs, descriptor_table_state_2eproto_deps, 3, 0,
+  schemas, file_default_instances, TableStruct_state_2eproto::offsets,
+  file_level_metadata_state_2eproto, 3, file_level_enum_descriptors_state_2eproto, file_level_service_descriptors_state_2eproto,
+};
 
-void protobuf_AssignDescriptorsOnce() {
-  static ::google::protobuf::internal::once_flag once;
-  ::google::protobuf::internal::call_once(once, protobuf_AssignDescriptors);
-}
-
-void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
-void protobuf_RegisterTypes(const ::std::string&) {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 3);
-}
-
-void AddDescriptorsImpl() {
-  InitDefaults();
-  static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\013state.proto\"\030\n\tMarkerIds\022\013\n\003ids\030\001 \003(\005\""
-      "f\n\005State\022\"\n\006robots\030\001 \003(\0132\022.State.RobotsE"
-      "ntry\0329\n\013RobotsEntry\022\013\n\003key\030\001 \001(\t\022\031\n\005valu"
-      "e\030\002 \001(\0132\n.MarkerIds:\0028\001b\006proto3"
-  };
-  ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 151);
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
-    "state.proto", &protobuf_RegisterTypes);
-}
-
-void AddDescriptors() {
-  static ::google::protobuf::internal::once_flag once;
-  ::google::protobuf::internal::call_once(once, AddDescriptorsImpl);
-}
-// Force AddDescriptors() to be called at dynamic initialization time.
-struct StaticDescriptorInitializer {
-  StaticDescriptorInitializer() {
-    AddDescriptors();
-  }
-} static_descriptor_initializer;
-}  // namespace protobuf_state_2eproto
+// Force running AddDescriptors() at dynamic initialization time.
+static bool dynamic_init_dummy_state_2eproto = (static_cast<void>(::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_state_2eproto)), true);
 
 // ===================================================================
 
 void MarkerIds::InitAsDefaultInstance() {
 }
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int MarkerIds::kIdsFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+class MarkerIds::_Internal {
+ public:
+};
 
-MarkerIds::MarkerIds()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  ::google::protobuf::internal::InitSCC(
-      &protobuf_state_2eproto::scc_info_MarkerIds.base);
+MarkerIds::MarkerIds(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  ids_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:MarkerIds)
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:MarkerIds)
 }
 MarkerIds::MarkerIds(const MarkerIds& from)
-  : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
       ids_(from.ids_) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   // @@protoc_insertion_point(copy_constructor:MarkerIds)
 }
 
@@ -198,131 +162,96 @@ void MarkerIds::SharedCtor() {
 MarkerIds::~MarkerIds() {
   // @@protoc_insertion_point(destructor:MarkerIds)
   SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 void MarkerIds::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
 }
 
+void MarkerIds::ArenaDtor(void* object) {
+  MarkerIds* _this = reinterpret_cast< MarkerIds* >(object);
+  (void)_this;
+}
+void MarkerIds::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
 void MarkerIds::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* MarkerIds::descriptor() {
-  ::protobuf_state_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_state_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
-}
-
 const MarkerIds& MarkerIds::default_instance() {
-  ::google::protobuf::internal::InitSCC(&protobuf_state_2eproto::scc_info_MarkerIds.base);
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_MarkerIds_state_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void MarkerIds::Clear() {
 // @@protoc_insertion_point(message_clear_start:MarkerIds)
-  ::google::protobuf::uint32 cached_has_bits = 0;
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   ids_.Clear();
-  _internal_metadata_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-bool MarkerIds::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:MarkerIds)
-  for (;;) {
-    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+const char* MarkerIds::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
       // repeated int32 ids = 1;
-      case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 input, this->mutable_ids())));
-        } else if (
-            static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
-                 1, 10u, input, this->mutable_ids())));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt32Parser(_internal_mutable_ids(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8) {
+          _internal_add_ids(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
       default: {
       handle_unusual:
-        if (tag == 0) {
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
           goto success;
         }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
       }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* MarkerIds::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:MarkerIds)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated int32 ids = 1;
+  {
+    int byte_size = _ids_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt32Packed(
+          1, _internal_ids(), byte_size, target);
     }
   }
-success:
-  // @@protoc_insertion_point(parse_success:MarkerIds)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:MarkerIds)
-  return false;
-#undef DO_
-}
 
-void MarkerIds::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:MarkerIds)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated int32 ids = 1;
-  if (this->ids_size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteTag(1, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
-    output->WriteVarint32(static_cast< ::google::protobuf::uint32>(
-        _ids_cached_byte_size_));
-  }
-  for (int i = 0, n = this->ids_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32NoTag(
-      this->ids(i), output);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
-  }
-  // @@protoc_insertion_point(serialize_end:MarkerIds)
-}
-
-::google::protobuf::uint8* MarkerIds::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:MarkerIds)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated int32 ids = 1;
-  if (this->ids_size() > 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
-      1,
-      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
-      target);
-    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
-        static_cast< ::google::protobuf::int32>(
-            _ids_cached_byte_size_), target);
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteInt32NoTagToArray(this->ids_, target);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:MarkerIds)
   return target;
@@ -332,41 +261,43 @@ size_t MarkerIds::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:MarkerIds)
   size_t total_size = 0;
 
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
-  }
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
   // repeated int32 ids = 1;
   {
-    size_t data_size = ::google::protobuf::internal::WireFormatLite::
+    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       Int32Size(this->ids_);
     if (data_size > 0) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::Int32Size(
-            static_cast< ::google::protobuf::int32>(data_size));
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
     }
-    int cached_size = ::google::protobuf::internal::ToCachedSize(data_size);
-    GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-    _ids_cached_byte_size_ = cached_size;
-    GOOGLE_SAFE_CONCURRENT_WRITES_END();
+    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
+    _ids_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
     total_size += data_size;
   }
 
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void MarkerIds::MergeFrom(const ::google::protobuf::Message& from) {
+void MarkerIds::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:MarkerIds)
   GOOGLE_DCHECK_NE(&from, this);
   const MarkerIds* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const MarkerIds>(
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<MarkerIds>(
           &from);
-  if (source == NULL) {
+  if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:MarkerIds)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:MarkerIds)
     MergeFrom(*source);
@@ -376,14 +307,14 @@ void MarkerIds::MergeFrom(const ::google::protobuf::Message& from) {
 void MarkerIds::MergeFrom(const MarkerIds& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:MarkerIds)
   GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::google::protobuf::uint32 cached_has_bits = 0;
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   ids_.MergeFrom(from.ids_);
 }
 
-void MarkerIds::CopyFrom(const ::google::protobuf::Message& from) {
+void MarkerIds::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:MarkerIds)
   if (&from == this) return;
   Clear();
@@ -401,36 +332,31 @@ bool MarkerIds::IsInitialized() const {
   return true;
 }
 
-void MarkerIds::Swap(MarkerIds* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void MarkerIds::InternalSwap(MarkerIds* other) {
   using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   ids_.InternalSwap(&other->ids_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
-::google::protobuf::Metadata MarkerIds::GetMetadata() const {
-  protobuf_state_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_state_2eproto::file_level_metadata[kIndexInFileMessages];
+::PROTOBUF_NAMESPACE_ID::Metadata MarkerIds::GetMetadata() const {
+  return GetMetadataStatic();
 }
 
 
 // ===================================================================
 
 State_RobotsEntry_DoNotUse::State_RobotsEntry_DoNotUse() {}
-State_RobotsEntry_DoNotUse::State_RobotsEntry_DoNotUse(::google::protobuf::Arena* arena) : SuperType(arena) {}
+State_RobotsEntry_DoNotUse::State_RobotsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
 void State_RobotsEntry_DoNotUse::MergeFrom(const State_RobotsEntry_DoNotUse& other) {
   MergeFromInternal(other);
 }
-::google::protobuf::Metadata State_RobotsEntry_DoNotUse::GetMetadata() const {
-  ::protobuf_state_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_state_2eproto::file_level_metadata[1];
+::PROTOBUF_NAMESPACE_ID::Metadata State_RobotsEntry_DoNotUse::GetMetadata() const {
+  return GetMetadataStatic();
 }
 void State_RobotsEntry_DoNotUse::MergeFrom(
-    const ::google::protobuf::Message& other) {
-  ::google::protobuf::Message::MergeFrom(other);
+    const ::PROTOBUF_NAMESPACE_ID::Message& other) {
+  ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom(other);
 }
 
 
@@ -438,238 +364,155 @@ void State_RobotsEntry_DoNotUse::MergeFrom(
 
 void State::InitAsDefaultInstance() {
 }
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int State::kRobotsFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+class State::_Internal {
+ public:
+};
 
-State::State()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  ::google::protobuf::internal::InitSCC(
-      &protobuf_state_2eproto::scc_info_State.base);
+State::State(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  robots_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:State)
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:State)
 }
 State::State(const State& from)
-  : ::google::protobuf::Message(),
-      _internal_metadata_(NULL) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   robots_.MergeFrom(from.robots_);
   // @@protoc_insertion_point(copy_constructor:State)
 }
 
 void State::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_State_state_2eproto.base);
 }
 
 State::~State() {
   // @@protoc_insertion_point(destructor:State)
   SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 void State::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
 }
 
+void State::ArenaDtor(void* object) {
+  State* _this = reinterpret_cast< State* >(object);
+  (void)_this;
+}
+void State::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
 void State::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
-const ::google::protobuf::Descriptor* State::descriptor() {
-  ::protobuf_state_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_state_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
-}
-
 const State& State::default_instance() {
-  ::google::protobuf::internal::InitSCC(&protobuf_state_2eproto::scc_info_State.base);
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_State_state_2eproto.base);
   return *internal_default_instance();
 }
 
 
 void State::Clear() {
 // @@protoc_insertion_point(message_clear_start:State)
-  ::google::protobuf::uint32 cached_has_bits = 0;
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   robots_.Clear();
-  _internal_metadata_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-bool State::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:State)
-  for (;;) {
-    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+const char* State::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
       // map<string, .MarkerIds> robots = 1;
-      case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          State_RobotsEntry_DoNotUse::Parser< ::google::protobuf::internal::MapField<
-              State_RobotsEntry_DoNotUse,
-              ::std::string, ::MarkerIds,
-              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
-              ::google::protobuf::internal::WireFormatLite::TYPE_MESSAGE,
-              0 >,
-            ::google::protobuf::Map< ::std::string, ::MarkerIds > > parser(&robots_);
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-              input, &parser));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            parser.key().data(), static_cast<int>(parser.key().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "State.RobotsEntry.key"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&robots_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else goto handle_unusual;
+        continue;
       default: {
       handle_unusual:
-        if (tag == 0) {
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
           goto success;
         }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
       }
-    }
-  }
+    }  // switch
+  }  // while
 success:
-  // @@protoc_insertion_point(parse_success:State)
-  return true;
+  return ptr;
 failure:
-  // @@protoc_insertion_point(parse_failure:State)
-  return false;
-#undef DO_
+  ptr = nullptr;
+  goto success;
+#undef CHK_
 }
 
-void State::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:State)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // map<string, .MarkerIds> robots = 1;
-  if (!this->robots().empty()) {
-    typedef ::google::protobuf::Map< ::std::string, ::MarkerIds >::const_pointer
-        ConstPtr;
-    typedef ConstPtr SortItem;
-    typedef ::google::protobuf::internal::CompareByDerefFirst<SortItem> Less;
-    struct Utf8Check {
-      static void Check(ConstPtr p) {
-        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-          p->first.data(), static_cast<int>(p->first.length()),
-          ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-          "State.RobotsEntry.key");
-      }
-    };
-
-    if (output->IsSerializationDeterministic() &&
-        this->robots().size() > 1) {
-      ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->robots().size()]);
-      typedef ::google::protobuf::Map< ::std::string, ::MarkerIds >::size_type size_type;
-      size_type n = 0;
-      for (::google::protobuf::Map< ::std::string, ::MarkerIds >::const_iterator
-          it = this->robots().begin();
-          it != this->robots().end(); ++it, ++n) {
-        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
-      }
-      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
-      ::std::unique_ptr<State_RobotsEntry_DoNotUse> entry;
-      for (size_type i = 0; i < n; i++) {
-        entry.reset(robots_.NewEntryWrapper(
-            items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second));
-        ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-            1, *entry, output);
-        Utf8Check::Check(items[static_cast<ptrdiff_t>(i)]);
-      }
-    } else {
-      ::std::unique_ptr<State_RobotsEntry_DoNotUse> entry;
-      for (::google::protobuf::Map< ::std::string, ::MarkerIds >::const_iterator
-          it = this->robots().begin();
-          it != this->robots().end(); ++it) {
-        entry.reset(robots_.NewEntryWrapper(
-            it->first, it->second));
-        ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-            1, *entry, output);
-        Utf8Check::Check(&*it);
-      }
-    }
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
-  }
-  // @@protoc_insertion_point(serialize_end:State)
-}
-
-::google::protobuf::uint8* State::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
+::PROTOBUF_NAMESPACE_ID::uint8* State::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
   // @@protoc_insertion_point(serialize_to_array_start:State)
-  ::google::protobuf::uint32 cached_has_bits = 0;
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   // map<string, .MarkerIds> robots = 1;
-  if (!this->robots().empty()) {
-    typedef ::google::protobuf::Map< ::std::string, ::MarkerIds >::const_pointer
+  if (!this->_internal_robots().empty()) {
+    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::MarkerIds >::const_pointer
         ConstPtr;
     typedef ConstPtr SortItem;
-    typedef ::google::protobuf::internal::CompareByDerefFirst<SortItem> Less;
+    typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByDerefFirst<SortItem> Less;
     struct Utf8Check {
       static void Check(ConstPtr p) {
-        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
           p->first.data(), static_cast<int>(p->first.length()),
-          ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+          ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
           "State.RobotsEntry.key");
       }
     };
 
-    if (deterministic &&
-        this->robots().size() > 1) {
+    if (stream->IsSerializationDeterministic() &&
+        this->_internal_robots().size() > 1) {
       ::std::unique_ptr<SortItem[]> items(
-          new SortItem[this->robots().size()]);
-      typedef ::google::protobuf::Map< ::std::string, ::MarkerIds >::size_type size_type;
+          new SortItem[this->_internal_robots().size()]);
+      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::MarkerIds >::size_type size_type;
       size_type n = 0;
-      for (::google::protobuf::Map< ::std::string, ::MarkerIds >::const_iterator
-          it = this->robots().begin();
-          it != this->robots().end(); ++it, ++n) {
+      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::MarkerIds >::const_iterator
+          it = this->_internal_robots().begin();
+          it != this->_internal_robots().end(); ++it, ++n) {
         items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
       }
       ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
-      ::std::unique_ptr<State_RobotsEntry_DoNotUse> entry;
       for (size_type i = 0; i < n; i++) {
-        entry.reset(robots_.NewEntryWrapper(
-            items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second));
-        target = ::google::protobuf::internal::WireFormatLite::
-                   InternalWriteMessageNoVirtualToArray(
-                       1, *entry, deterministic, target);
-;
-        Utf8Check::Check(items[static_cast<ptrdiff_t>(i)]);
+        target = State_RobotsEntry_DoNotUse::Funcs::InternalSerialize(1, items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second, target, stream);
+        Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
       }
     } else {
-      ::std::unique_ptr<State_RobotsEntry_DoNotUse> entry;
-      for (::google::protobuf::Map< ::std::string, ::MarkerIds >::const_iterator
-          it = this->robots().begin();
-          it != this->robots().end(); ++it) {
-        entry.reset(robots_.NewEntryWrapper(
-            it->first, it->second));
-        target = ::google::protobuf::internal::WireFormatLite::
-                   InternalWriteMessageNoVirtualToArray(
-                       1, *entry, deterministic, target);
-;
-        Utf8Check::Check(&*it);
+      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::MarkerIds >::const_iterator
+          it = this->_internal_robots().begin();
+          it != this->_internal_robots().end(); ++it) {
+        target = State_RobotsEntry_DoNotUse::Funcs::InternalSerialize(1, it->first, it->second, target, stream);
+        Utf8Check::Check(&(*it));
       }
     }
   }
 
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:State)
   return target;
@@ -679,39 +522,37 @@ size_t State::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:State)
   size_t total_size = 0;
 
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
-  }
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
   // map<string, .MarkerIds> robots = 1;
   total_size += 1 *
-      ::google::protobuf::internal::FromIntSize(this->robots_size());
-  {
-    ::std::unique_ptr<State_RobotsEntry_DoNotUse> entry;
-    for (::google::protobuf::Map< ::std::string, ::MarkerIds >::const_iterator
-        it = this->robots().begin();
-        it != this->robots().end(); ++it) {
-      entry.reset(robots_.NewEntryWrapper(it->first, it->second));
-      total_size += ::google::protobuf::internal::WireFormatLite::
-          MessageSizeNoVirtual(*entry);
-    }
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_robots_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::MarkerIds >::const_iterator
+      it = this->_internal_robots().begin();
+      it != this->_internal_robots().end(); ++it) {
+    total_size += State_RobotsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
 }
 
-void State::MergeFrom(const ::google::protobuf::Message& from) {
+void State::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
 // @@protoc_insertion_point(generalized_merge_from_start:State)
   GOOGLE_DCHECK_NE(&from, this);
   const State* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const State>(
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<State>(
           &from);
-  if (source == NULL) {
+  if (source == nullptr) {
   // @@protoc_insertion_point(generalized_merge_from_cast_fail:State)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
   // @@protoc_insertion_point(generalized_merge_from_cast_success:State)
     MergeFrom(*source);
@@ -721,14 +562,14 @@ void State::MergeFrom(const ::google::protobuf::Message& from) {
 void State::MergeFrom(const State& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:State)
   GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::google::protobuf::uint32 cached_has_bits = 0;
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   robots_.MergeFrom(from.robots_);
 }
 
-void State::CopyFrom(const ::google::protobuf::Message& from) {
+void State::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
 // @@protoc_insertion_point(generalized_copy_from_start:State)
   if (&from == this) return;
   Clear();
@@ -746,35 +587,29 @@ bool State::IsInitialized() const {
   return true;
 }
 
-void State::Swap(State* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
 void State::InternalSwap(State* other) {
   using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   robots_.Swap(&other->robots_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 
-::google::protobuf::Metadata State::GetMetadata() const {
-  protobuf_state_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_state_2eproto::file_level_metadata[kIndexInFileMessages];
+::PROTOBUF_NAMESPACE_ID::Metadata State::GetMetadata() const {
+  return GetMetadataStatic();
 }
 
 
 // @@protoc_insertion_point(namespace_scope)
-namespace google {
-namespace protobuf {
-template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::MarkerIds* Arena::CreateMaybeMessage< ::MarkerIds >(Arena* arena) {
-  return Arena::CreateInternal< ::MarkerIds >(arena);
+PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::MarkerIds* Arena::CreateMaybeMessage< ::MarkerIds >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::MarkerIds >(arena);
 }
-template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::State_RobotsEntry_DoNotUse* Arena::CreateMaybeMessage< ::State_RobotsEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::State_RobotsEntry_DoNotUse >(arena);
+template<> PROTOBUF_NOINLINE ::State_RobotsEntry_DoNotUse* Arena::CreateMaybeMessage< ::State_RobotsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::State_RobotsEntry_DoNotUse >(arena);
 }
-template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::State* Arena::CreateMaybeMessage< ::State >(Arena* arena) {
-  return Arena::CreateInternal< ::State >(arena);
+template<> PROTOBUF_NOINLINE ::State* Arena::CreateMaybeMessage< ::State >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::State >(arena);
 }
-}  // namespace protobuf
-}  // namespace google
+PROTOBUF_NAMESPACE_CLOSE
 
 // @@protoc_insertion_point(global_scope)
+#include <google/protobuf/port_undef.inc>

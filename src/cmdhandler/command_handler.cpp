@@ -9,7 +9,7 @@
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
-std::string command_handler::do_command(std::vector<std::string> tokens, state_variables *current_state){
+std::string command_handler::do_command(std::vector<std::string> tokens, StateVariables *current_state){
     std::string command = tokens[0];
 
     //check if command requires a target system
@@ -53,7 +53,7 @@ std::vector<std::string> command_handler::tokenize_values(std::string values){
     return tokens;
 }
 
-std::string command_handler::robot_system(std::vector<std::string> tokens, state_variables *current_state){
+std::string command_handler::robot_system(std::vector<std::string> tokens, StateVariables *current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
         for(auto const& robot : current_state->robots){
@@ -124,7 +124,7 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, state
     }
 }
 
-std::string command_handler::state_system(std::vector<std::string> tokens, state_variables *current_state){
+std::string command_handler::state_system(std::vector<std::string> tokens, StateVariables *current_state){
     if(tokens[0] == "save"){
         if(tokens.size() != 3){
             return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
