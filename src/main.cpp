@@ -1,4 +1,11 @@
 #include <thread>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <ctime>
+#include <sstream>
+#include <chrono>
+#include <iomanip>
 
 #include "cmdhandler/logger.h"
 #include "cmdhandler/server.h"
@@ -12,6 +19,25 @@ int main(int argc, char** argv)
     //start logging
     //will open file stream and redirect stdout to said file.
     //logger::start();
+    {
+        // Assemble the log file's name based on the current date and time
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+        std::stringstream ss;
+        ss << "./logs/log-";
+        ss << std::put_time(std::localtime(&now_c), "%m-%d-%Y_%H-%M-%S");
+        ss << ".txt";
+        std::cout << ss.str() << std::endl;
+
+        // Create a multi-threaded, combined logger that prints to both console and a file
+        std::vector<spdlog::sink_ptr> sinks;
+        sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(ss.str()));
+        auto logger = std::make_shared<spdlog::logger>("default", sinks.begin(), sinks.end());
+        spdlog::register_logger(logger);
+        spdlog::set_default_logger(logger);
+        spdlog::set_level(spdlog::level::debug);
+    }
     std::shared_ptr<GlobalState> state = std::make_shared<GlobalState>();
 
     std::thread command_thread(command_thread_func, argc, argv, state);
@@ -27,7 +53,7 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
 {
     try{
         if (argc != 2){
-            std::cerr << "arg1: <port>\n";
+            spdlog::critical("arg1: <port>");
             return;
         }
 
@@ -38,7 +64,7 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
         io_context.run();
     }
     catch (std::exception& e){
-        std::cerr << "Exception: " << e.what() << "\n";
+        spdlog::critical("Exception: %s", e.what());
     }
 }
 
