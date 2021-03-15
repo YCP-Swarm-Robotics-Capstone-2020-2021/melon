@@ -8,7 +8,7 @@ struct Marker
     int id;
     std::vector<cv::Point2f> corners;
     // Translation and rotation vectors
-    cv::Vec3d tvec, rvec;
+    cv::Vec3d rvec, tvec;
     // "Real" position - Position in <given unit of measurement> relative to the center of the area of operation
     cv::Vec3d real_pos;
     // "Real" orientation - Orientation relative to the camera frame
