@@ -15,7 +15,7 @@ void GlobalState::receive(const StateVariables& state)
 
 void GlobalState::apply(StateVariables& state)
 {
-    if(m_state.version.load() > state.version.load())
+    if(m_state.version > state.version)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
         state = m_state;
