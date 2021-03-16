@@ -252,11 +252,11 @@ std::string command_handler::collector_system(std::vector<std::string> tokens, S
             return "please provide a collector to delete\n    ex: delete collector gcs";
         }
 
-        //get count of robots before attempting delete
+        //get count of collector before attempting delete
         int initial_num_collectors = current_state->collectors.size();
         std::string collector_to_delete = tokens[2];
 
-        //remove given robot, if size didn't decrease, robot didn't exist
+        //remove given collector, if size didn't decrease, collector didn't exist
         current_state->collectors.erase(collector_to_delete);
         if(current_state->collectors.size() < initial_num_collectors){
             return "collector '"+collector_to_delete+"' has been removed";
