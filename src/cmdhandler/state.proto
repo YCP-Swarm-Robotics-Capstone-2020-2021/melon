@@ -6,4 +6,5 @@ message MarkerIds{
 
 message State {
   map<string, MarkerIds> robots = 1;
+  map<string, string> collectors = 2;
 }
