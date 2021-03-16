@@ -1,5 +1,5 @@
 #include "session.h"
-#include "logger.h"
+#include <spdlog/spdlog.h>
 #include "command_handler.h"
 
 session::session(tcp::socket socket, std::shared_ptr<GlobalState> state): socket_(std::move(socket)), m_state(state)
@@ -39,7 +39,7 @@ std::vector<std::string> session::tokenize_command(std::string command){
 
 void session::start()
 {
-    logger::log_connection(socket_.remote_endpoint().address());
+    spdlog::info(socket_.remote_endpoint().address().to_string()+" connected");
     do_write("> ", 2);
     do_read();
 }
@@ -55,14 +55,15 @@ void session::do_read()
                                         std::string command = get_command(data_, length);
 
                                         if(command == "quit"){
-                                            logger::log_disconnect(socket_.remote_endpoint().address());
+                                            spdlog::info(socket_.remote_endpoint().address().to_string()+" disconnected");
                                             socket_.close();
                                         }else if(command == "clear"){
-                                            logger::log_input(socket_.remote_endpoint().address(), command);
+                                            spdlog::info(socket_.remote_endpoint().address().to_string()+": "+command);
                                             std::string clear_string = "\033[2J\033[H";
                                             do_write(clear_string, clear_string.size());
                                         }else {
-                                            logger::log_input(socket_.remote_endpoint().address(), command);
+                                            //log input from user
+                                            spdlog::info(socket_.remote_endpoint().address().to_string()+": "+command);
 
                                             //if not 'quit', tokenize input by " "
                                             std::vector<std::string> tokens = tokenize_command(command);
@@ -72,12 +73,13 @@ void session::do_read()
                                             std::string response = command_handler::do_command(tokens, &local_variables);
                                             m_state->receive(local_variables);
 
-                                            logger::log_output(socket_.remote_endpoint().address(), response);
+                                            //log/write response
+                                            spdlog::info(socket_.remote_endpoint().address().to_string()+" >> \n"+response);
                                             do_write(response+"\n", response.length()+2);
                                         }
                                         do_write("> ", 2);
                                     }else if(ec == asio::error::eof || ec == asio::error::connection_reset){
-                                        logger::log_disconnect(socket_.remote_endpoint().address());
+                                        spdlog::info(socket_.remote_endpoint().address().to_string()+" disconnected");
                                     }
                                 });
 
