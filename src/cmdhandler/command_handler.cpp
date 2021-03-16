@@ -235,7 +235,7 @@ std::string command_handler::collector_system(std::vector<std::string> tokens, S
         return collector_id+" added with ip "+ip.to_string();
     }else if(tokens[0] == "get"){
         if(tokens.size() != 3){
-            return "please provide a collector to get\n    ex: get robot gcs";
+            return "please provide a collector to get\n    ex: get collector gcs";
         }
 
         std::string collector_to_get = tokens[2];
