@@ -7,7 +7,6 @@
 #include <chrono>
 #include <iomanip>
 
-#include "cmdhandler/logger.h"
 #include "cmdhandler/server.h"
 #include "camera/opencvcamera.h"
 
@@ -18,7 +17,6 @@ int main(int argc, char** argv)
 {
     //start logging
     //will open file stream and redirect stdout to said file.
-    //logger::start();
     {
         // Assemble the log file's name based on the current date and time
         auto now = std::chrono::system_clock::now();
@@ -36,6 +34,7 @@ int main(int argc, char** argv)
         spdlog::register_logger(logger);
         spdlog::set_default_logger(logger);
         spdlog::set_level(spdlog::level::debug);
+        spdlog::flush_every(std::chrono::seconds(1));
     }
     std::shared_ptr<GlobalState> state = std::make_shared<GlobalState>();
 
