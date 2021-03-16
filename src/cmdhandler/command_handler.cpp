@@ -27,6 +27,8 @@ std::string command_handler::do_command(std::vector<std::string> tokens, StateVa
             return robot_system(tokens, current_state);
         }else if(target_system == "state"){
             return state_system(tokens, current_state);
+        }else if(target_system == "collector"){
+            return collector_system(tokens, current_state);
         }else{
             return "target system: '"+target_system+"' not found";
         }
@@ -144,6 +146,11 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
                 (*state_to_save->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
         }
 
+        //save "collectors" map
+        for(auto const& collector : current_state->collectors){
+            (*state_to_save->mutable_collectors())[collector.first] = collector.second;
+        }
+
         std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save->SerializeToOstream(&output);
 
@@ -169,6 +176,12 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
             current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
         }
 
+        //clear collector state variable, fill from loaded State
+        current_state->collectors.clear();
+        for(auto const &collector : state_to_load->collectors()){
+            current_state->collectors.insert(std::pair<std::string, std::string>(collector.first, collector.second));
+        }
+
         return "current state loaded from '"+load_name+"'";
     }else if(tokens[0] == "delete"){
         if(tokens.size() != 3){
@@ -181,6 +194,7 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
         //if not, attempt to delete save state's file
         if(state_to_delete == "current"){
             current_state->robots.clear();
+            current_state->collectors.clear();
             return "current state has been cleared";
         }else{
             if(remove(state_to_delete.c_str()) != 0){
@@ -194,17 +208,82 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
     }
 }
 
+std::string command_handler::collector_system(std::vector<std::string> tokens, StateVariables *current_state) {
+    if(tokens[0] == "list"){
+        std::string response = "Current collectors:";
+
+        for(auto const& collector : current_state->collectors){
+            response += "\n    "+collector.first+": "+collector.second;
+        }
+
+        return response;
+    }else if(tokens[0] == "set"){
+        if(tokens.size() != 4){
+            return "please provide a collector name and an ip\n    ex: set collector gcs 127.0.0.1";
+        }
+
+        std::string collector_id = tokens[2];
+
+        asio::error_code ec;
+        asio::ip::address ip = asio::ip::make_address(tokens[3], ec);
+
+        if(ec){
+            return "please provide a valid ipv4 address";
+        }
+
+        current_state->collectors.insert(std::pair<std::string, std::string>(collector_id, ip.to_string()));
+        return collector_id+" added with ip "+ip.to_string();
+    }else if(tokens[0] == "get"){
+        if(tokens.size() != 3){
+            return "please provide a collector to get\n    ex: get robot gcs";
+        }
+
+        std::string collector_to_get = tokens[2];
+        auto index = current_state->collectors.find(collector_to_get);
+
+        if(index == current_state->collectors.end()){
+            return "collector '"+collector_to_get+"' not found";
+        }else{
+            std::string response = collector_to_get+": "+index->second;
+            return response;
+        }
+    }else if(tokens[0] == "delete"){
+        if(tokens.size() != 3){
+            return "please provide a collector to delete\n    ex: delete collector gcs";
+        }
+
+        //get count of robots before attempting delete
+        int initial_num_collectors = current_state->collectors.size();
+        std::string collector_to_delete = tokens[2];
+
+        //remove given robot, if size didn't decrease, robot didn't exist
+        current_state->collectors.erase(collector_to_delete);
+        if(current_state->collectors.size() < initial_num_collectors){
+            return "collector '"+collector_to_delete+"' has been removed";
+        }else{
+            return "collector '"+collector_to_delete+"' does not exist";
+        }
+    }else{
+        return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
+    }
+}
+
 std::string command_handler::help_command(){
     std::string response = "current target systems:\n";
-    response += "    robot, state\n\n";
+    response += "    robot, state, collector\n\n";
 
     response += "for the 'robot' system you can use the commands:\n";
     response += "    get, set, list, delete\n";
-    response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4'\n\n";
+    response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4' or 'delete robot robot1'\n\n";
 
     response += "for the 'state' system you can use the commands:\n";
     response += "    save, load, delete\n";
-    response += "ex: 'save state config1' or 'load state config1' or 'delete state config1'\n\n";
+    response += "ex: 'save state config1' or 'load state config1' or 'delete state config1'\n";
+    response += "NOTE: keyword 'current' is used for deleting current state ('delete state current'). Cannot save a state with the name 'current'\n\n";
+
+    response += "for the 'collector' system you can use the commands:\n";
+    response += "    get, set, list, delete\n";
+    response += "ex: 'get collector gcs' or 'list collector' or 'set collector gcs 127.0.0.1' or 'delete collector gcs'\n\n";
 
     response += "intended usage for each target system will be clarified if used incorrectly.\n\n";
     return response;
