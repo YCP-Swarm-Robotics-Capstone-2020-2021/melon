@@ -34,4 +34,10 @@ public:
     std::atomic_uint version;
 };
 
+class UpdateableState
+{
+public:
+    virtual void update_state(StateVariables& state)=0;
+};
+
 #endif //MELON_STATEVARIABLES_H
