@@ -9,7 +9,7 @@
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
-std::string command_handler::do_command(std::vector<std::string> tokens, StateVariables *current_state){
+std::string command_handler::do_command(const std::vector<std::string>& tokens, StateVariables& current_state){
     std::string command = tokens[0];
 
     //check if command requires a target system
@@ -39,7 +39,7 @@ std::string command_handler::do_command(std::vector<std::string> tokens, StateVa
     }
 }
 
-std::vector<std::string> command_handler::tokenize_values(std::string values){
+std::vector<std::string> command_handler::tokenize_values(const std::string& values){
     std::vector<std::string> tokens;
 
     std::string delimiter = ",";
@@ -55,10 +55,10 @@ std::vector<std::string> command_handler::tokenize_values(std::string values){
     return tokens;
 }
 
-std::string command_handler::robot_system(std::vector<std::string> tokens, StateVariables *current_state){
+std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
-        for(auto const& robot : current_state->robots){
+        for(auto const& robot : current_state.robots){
             response += "\n    "+robot.first+": ";
             for(auto const& marker_id : robot.second){
                 response += std::to_string(marker_id)+",";
@@ -85,7 +85,7 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, State
             }
         }
 
-        current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
+        current_state.robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
         return robot_id+" added with marker values "+tokens[3];
     }else if(tokens[0] == "get"){
         if(tokens.size() != 3){
@@ -93,9 +93,9 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, State
         }
 
         std::string robot_to_get = tokens[2];
-        auto index = current_state->robots.find(robot_to_get);
+        auto index = current_state.robots.find(robot_to_get);
 
-        if(index == current_state->robots.end()){
+        if(index == current_state.robots.end()){
             return "robot '"+robot_to_get+"' not found";
         }else{
             std::string response = robot_to_get+":\n    ";
@@ -111,12 +111,12 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, State
         }
 
         //get count of robots before attempting delete
-        int initial_num_robots = current_state->robots.size();
+        int initial_num_robots = current_state.robots.size();
         std::string robot_to_delete = tokens[2];
 
         //remove given robot, if size didn't decrease, robot didn't exist
-        current_state->robots.erase(robot_to_delete);
-        if(current_state->robots.size() < initial_num_robots){
+        current_state.robots.erase(robot_to_delete);
+        if(current_state.robots.size() < initial_num_robots){
             return "robot '"+robot_to_delete+"' has been removed";
         }else{
             return "robot '"+robot_to_delete+"' does not exist";
@@ -126,7 +126,7 @@ std::string command_handler::robot_system(std::vector<std::string> tokens, State
     }
 }
 
-std::string command_handler::state_system(std::vector<std::string> tokens, StateVariables *current_state){
+std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == "save"){
         if(tokens.size() != 3){
             return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
@@ -140,19 +140,19 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
         }
 
         //save "robots" map
-        State *state_to_save = new State();
-        for(auto const& robot : current_state->robots){
+        State state_to_save;
+        for(auto const& robot : current_state.robots){
             for(auto const& marker_id : robot.second)
-                (*state_to_save->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
+                (*state_to_save.mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
         }
 
         //save "collectors" map
-        for(auto const& collector : current_state->collectors){
-            (*state_to_save->mutable_collectors())[collector.first] = collector.second;
+        for(auto const& collector : current_state.collectors){
+            (*state_to_save.mutable_collectors())[collector.first] = collector.second;
         }
 
         std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
-        state_to_save->SerializeToOstream(&output);
+        state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
     }else if(tokens[0] == "load"){
@@ -162,24 +162,24 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
 
         std::string load_name = tokens[2];
 
-        State *state_to_load = new State();
+        State state_to_load;
         std::fstream input(load_name, std::ios::in | std::ios::binary);
-        state_to_load->ParseFromIstream(&input);
+        state_to_load.ParseFromIstream(&input);
 
         //clear robots state variable, fill from loaded State instance above
-        current_state->robots.clear();
-        for(auto const &robot : state_to_load->robots()){
+        current_state.robots.clear();
+        for(auto const &robot : state_to_load.robots()){
             std::vector<int> marker_ids_to_save;
             for(auto const &marker_id : robot.second.ids()){
                 marker_ids_to_save.push_back(marker_id);
             }
-            current_state->robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
+            current_state.robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
         }
 
         //clear collector state variable, fill from loaded State
-        current_state->collectors.clear();
-        for(auto const &collector : state_to_load->collectors()){
-            current_state->collectors.insert(std::pair<std::string, std::string>(collector.first, collector.second));
+        current_state.collectors.clear();
+        for(auto const &collector : state_to_load.collectors()){
+            current_state.collectors.insert(std::pair<std::string, std::string>(collector.first, collector.second));
         }
 
         return "current state loaded from '"+load_name+"'";
@@ -193,8 +193,8 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
         //if value is 'current', clear out current state
         //if not, attempt to delete save state's file
         if(state_to_delete == "current"){
-            current_state->robots.clear();
-            current_state->collectors.clear();
+            current_state.robots.clear();
+            current_state.collectors.clear();
             return "current state has been cleared";
         }else{
             if(remove(state_to_delete.c_str()) != 0){
@@ -208,11 +208,11 @@ std::string command_handler::state_system(std::vector<std::string> tokens, State
     }
 }
 
-std::string command_handler::collector_system(std::vector<std::string> tokens, StateVariables *current_state) {
+std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
     if(tokens[0] == "list"){
         std::string response = "Current collectors:";
 
-        for(auto const& collector : current_state->collectors){
+        for(auto const& collector : current_state.collectors){
             response += "\n    "+collector.first+": "+collector.second;
         }
 
@@ -231,7 +231,7 @@ std::string command_handler::collector_system(std::vector<std::string> tokens, S
             return "please provide a valid ipv4 address";
         }
 
-        current_state->collectors.insert(std::pair<std::string, std::string>(collector_id, ip.to_string()));
+        current_state.collectors.insert(std::pair<std::string, std::string>(collector_id, ip.to_string()));
         return collector_id+" added with ip "+ip.to_string();
     }else if(tokens[0] == "get"){
         if(tokens.size() != 3){
@@ -239,9 +239,9 @@ std::string command_handler::collector_system(std::vector<std::string> tokens, S
         }
 
         std::string collector_to_get = tokens[2];
-        auto index = current_state->collectors.find(collector_to_get);
+        auto index = current_state.collectors.find(collector_to_get);
 
-        if(index == current_state->collectors.end()){
+        if(index == current_state.collectors.end()){
             return "collector '"+collector_to_get+"' not found";
         }else{
             std::string response = collector_to_get+": "+index->second;
@@ -253,12 +253,12 @@ std::string command_handler::collector_system(std::vector<std::string> tokens, S
         }
 
         //get count of collector before attempting delete
-        int initial_num_collectors = current_state->collectors.size();
+        int initial_num_collectors = current_state.collectors.size();
         std::string collector_to_delete = tokens[2];
 
         //remove given collector, if size didn't decrease, collector didn't exist
-        current_state->collectors.erase(collector_to_delete);
-        if(current_state->collectors.size() < initial_num_collectors){
+        current_state.collectors.erase(collector_to_delete);
+        if(current_state.collectors.size() < initial_num_collectors){
             return "collector '"+collector_to_delete+"' has been removed";
         }else{
             return "collector '"+collector_to_delete+"' does not exist";
@@ -279,7 +279,7 @@ std::string command_handler::help_command(){
     response += "for the 'state' system you can use the commands:\n";
     response += "    save, load, delete\n";
     response += "ex: 'save state config1' or 'load state config1' or 'delete state config1'\n";
-    response += "NOTE: keyword 'current' is used for deleting current state ('delete state current'). Cannot save a state with the name 'current'\n\n";
+    response += "NOTE: keyword 'current' is used for clearing current state ('delete state current'). Cannot save a state with the name 'current'\n\n";
 
     response += "for the 'collector' system you can use the commands:\n";
     response += "    get, set, list, delete\n";

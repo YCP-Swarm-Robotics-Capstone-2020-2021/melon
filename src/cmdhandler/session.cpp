@@ -70,7 +70,7 @@ void session::do_read()
 
                                             StateVariables local_variables = m_state->get_state();
                                             //TODO: pass to some input/token handler class
-                                            std::string response = command_handler::do_command(tokens, &local_variables);
+                                            std::string response = command_handler::do_command(tokens, local_variables);
                                             m_state->receive(local_variables);
 
                                             //log/write response

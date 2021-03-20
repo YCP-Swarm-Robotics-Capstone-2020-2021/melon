@@ -13,13 +13,13 @@
 
 class command_handler {
 public:
-    static std::string do_command(std::vector<std::string> tokens, StateVariables *current_state);
+    static std::string do_command(const std::vector<std::string>& tokens, StateVariables& current_state);
 private:
-    static std::string robot_system(std::vector<std::string> tokens, StateVariables *current_state);
-    static std::string state_system(std::vector<std::string> tokens, StateVariables *current_state);
-    static std::string collector_system(std::vector<std::string> tokens, StateVariables *current_state);
+    static std::string robot_system(const std::vector<std::string>& tokens, StateVariables& current_state);
+    static std::string state_system(const std::vector<std::string>& tokens, StateVariables& current_state);
+    static std::string collector_system(const std::vector<std::string>& tokens, StateVariables& current_state);
     static std::string help_command();
-    static std::vector<std::string> tokenize_values(std::string values);
+    static std::vector<std::string> tokenize_values(const std::string& values);
 };
 
 
