@@ -13,3 +13,8 @@ bool Camera::video_postprocessing_enabled() { return m_video_postprocessing; }
 
 const CameraCalib& Camera::get_camera_calib() const { return m_calib; }
 const std::string& Camera::get_connection_url() const { return m_connection_url; }
+
+void Camera::update_state(StateVariables& state)
+{
+
+}

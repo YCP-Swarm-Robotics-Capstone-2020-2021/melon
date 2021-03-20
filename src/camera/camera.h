@@ -7,7 +7,7 @@
 #include "../cmdhandler/statevariables.h"
 #include "cameracalib.h"
 
-class Camera
+class Camera : public UpdateableState
 {
 public:
     virtual ~Camera() { }
@@ -29,6 +29,8 @@ public:
     // Get a frame for processing from the camera
     // Returns if frame was successfully retrieved
     virtual bool get_frame(cv::Mat& frame)=0;
+
+    void update_state(StateVariables& state) override;
 
 protected:
     explicit Camera(StateVariables& state);
