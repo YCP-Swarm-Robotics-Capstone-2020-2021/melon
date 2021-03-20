@@ -14,6 +14,7 @@ class Variables
 {
 public:
     std::unordered_map<std::string, std::vector<int>> robots;
+    std::unordered_map<std::string, std::string> collectors;
 protected:
     Variables() = default;
 };
