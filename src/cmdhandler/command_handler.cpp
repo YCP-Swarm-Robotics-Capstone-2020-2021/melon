@@ -164,6 +164,11 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         State state_to_load;
         std::fstream input(load_name, std::ios::in | std::ios::binary);
+
+        //check if the given state file even exists, if exists parse in using protobuf
+        if(!input.is_open()){
+            return "given state '"+load_name+"' does not exist";
+        }
         state_to_load.ParseFromIstream(&input);
 
         //clear robots state variable, fill from loaded State instance above
@@ -182,6 +187,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collectors.insert(std::pair<std::string, std::string>(collector.first, collector.second));
         }
 
+        input.close();
         return "current state loaded from '"+load_name+"'";
     }else if(tokens[0] == "delete"){
         if(tokens.size() != 3){
