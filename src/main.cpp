@@ -1,3 +1,7 @@
+// DO NOT REMOVE OR ADD ANY INCLUDES BEFORE THIS. Having asio at the top of the file in main fixes some potential
+// segfaults that occur due to mismatching typedefs within asio when other headers are included before it
+#include <asio.hpp>
+
 #include <thread>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -56,9 +60,7 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
         }
 
         asio::io_context io_context;
-
         server s(io_context, std::atoi(argv[1]), state);
-
         io_context.run();
     }
     catch (std::exception& e){
