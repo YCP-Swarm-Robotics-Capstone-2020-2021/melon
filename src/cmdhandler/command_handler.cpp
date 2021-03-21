@@ -209,6 +209,25 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
                 return "state '"+state_to_delete+"' has been removed";
             }
         }
+    }else if(tokens[0] == "list"){
+        std::string response = "Saved states:";
+
+        DIR *states_dir = opendir("states/");
+        struct dirent *dir_read;
+
+        if(states_dir != nullptr){
+            while((dir_read = readdir(states_dir)) != nullptr){
+                //remove the .. and . identifiers
+                if(std::strcmp(dir_read->d_name, "..") != 0 && std::strcmp(dir_read->d_name, ".") != 0){
+                    response += "\n    "+std::string(dir_read->d_name);
+                }
+            }
+            closedir(states_dir);
+        }else{
+            return "The 'states' directory doesn't exist";
+        }
+
+        return response;
     }else{
         return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
     }

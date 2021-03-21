@@ -8,6 +8,8 @@
 #include <asio.hpp>
 #include <fstream>
 #include <stdio.h>
+#include <iostream>
+#include <dirent.h>
 #include "statevariables.h"
 #include "state.pb.h"
 
