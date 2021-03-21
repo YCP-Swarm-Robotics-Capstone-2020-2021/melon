@@ -9,6 +9,8 @@
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
+const std::string SAVE_STATE_DIR = "states/";
+
 std::string command_handler::do_command(const std::vector<std::string>& tokens, StateVariables& current_state){
     std::string command = tokens[0];
 
@@ -151,7 +153,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_collectors())[collector.first] = collector.second;
         }
 
-        std::fstream output("states/"+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+        std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
@@ -163,7 +165,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string load_name = tokens[2];
 
         State state_to_load;
-        std::fstream input("states/"+load_name, std::ios::in | std::ios::binary);
+        std::fstream input(SAVE_STATE_DIR+load_name, std::ios::in | std::ios::binary);
 
         //check if the given state file even exists, if exists parse in using protobuf
         if(!input.is_open()){
@@ -203,29 +205,19 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collectors.clear();
             return "current state has been cleared";
         }else{
-            if(remove(("states/"+state_to_delete).c_str()) != 0){
-                return "saved state '"+state_to_delete+"' does not exist";
-            }else{
+            if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
                 return "state '"+state_to_delete+"' has been removed";
+            }else{
+                return "saved state '"+state_to_delete+"' does not exist";
             }
         }
     }else if(tokens[0] == "list"){
         std::string response = "Saved states:";
 
-        DIR *states_dir = opendir("states/");
-        struct dirent *dir_read;
-
         //get file names in the 'states' directory
-        if(states_dir != nullptr){
-            while((dir_read = readdir(states_dir)) != nullptr){
-                //remove the .. and . identifiers
-                if(std::strcmp(dir_read->d_name, "..") != 0 && std::strcmp(dir_read->d_name, ".") != 0){
-                    response += "\n    "+std::string(dir_read->d_name);
-                }
-            }
-            closedir(states_dir);
-        }else{
-            return "The 'states' directory doesn't exist";
+        for (const auto & entry : std::filesystem::directory_iterator(SAVE_STATE_DIR)){
+            std::string filename_string = std::string(entry.path());
+            response += "\n    "+filename_string.substr(filename_string.find_last_of("/") + 1);
         }
 
         return response;
