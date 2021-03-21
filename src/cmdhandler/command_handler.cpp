@@ -197,7 +197,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string state_to_delete = tokens[2];
 
         //if value is 'current', clear out current state
-        //if not, attempt to delete save state's file
+        //if not, attempt to delete given save state's file
         if(state_to_delete == "current"){
             current_state.robots.clear();
             current_state.collectors.clear();
@@ -215,6 +215,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         DIR *states_dir = opendir("states/");
         struct dirent *dir_read;
 
+        //get file names in the 'states' directory
         if(states_dir != nullptr){
             while((dir_read = readdir(states_dir)) != nullptr){
                 //remove the .. and . identifiers
