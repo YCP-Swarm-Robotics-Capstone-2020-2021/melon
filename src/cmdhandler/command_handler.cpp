@@ -151,7 +151,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_collectors())[collector.first] = collector.second;
         }
 
-        std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+        std::fstream output("states/"+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
@@ -163,7 +163,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string load_name = tokens[2];
 
         State state_to_load;
-        std::fstream input(load_name, std::ios::in | std::ios::binary);
+        std::fstream input("states/"+load_name, std::ios::in | std::ios::binary);
 
         //check if the given state file even exists, if exists parse in using protobuf
         if(!input.is_open()){
@@ -203,7 +203,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collectors.clear();
             return "current state has been cleared";
         }else{
-            if(remove(state_to_delete.c_str()) != 0){
+            if(remove(("states/"+state_to_delete).c_str()) != 0){
                 return "saved state '"+state_to_delete+"' does not exist";
             }else{
                 return "state '"+state_to_delete+"' has been removed";
