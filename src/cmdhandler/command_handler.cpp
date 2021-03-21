@@ -5,6 +5,7 @@
 //---no return response should have any new line characters at the start or end
 
 #include "command_handler.h"
+#include <sstream>
 
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
@@ -148,7 +149,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //save "collectors" map
         for(auto const& collector : current_state.collectors){
-            (*state_to_save.mutable_collectors())[collector.first] = collector.second;
+            Endpoint endpoint;
+            endpoint.set_address(collector.second.address().to_string());
+            endpoint.set_port(collector.second.port());
+            (*state_to_save.mutable_collectors())[collector.first] = endpoint;
         }
 
         std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -179,7 +183,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //clear collector state variable, fill from loaded State
         current_state.collectors.clear();
         for(auto const &collector : state_to_load.collectors()){
-            current_state.collectors.insert(std::pair<std::string, std::string>(collector.first, collector.second));
+            auto endpoint = asio::ip::udp::endpoint(
+                    asio::ip::make_address(collector.second.address()),
+                    collector.second.port());
+            current_state.collectors.insert(std::pair(collector.first, endpoint));
         }
 
         return "current state loaded from '"+load_name+"'";
@@ -210,29 +217,32 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
 std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
     if(tokens[0] == "list"){
-        std::string response = "Current collectors:";
+        std::stringstream response;
+        response << "Current collectors:";
 
         for(auto const& collector : current_state.collectors){
-            response += "\n    "+collector.first+": "+collector.second;
+            response << "\n    " + collector.first << ": " << collector.second;
         }
 
-        return response;
+        return response.str();
     }else if(tokens[0] == "set"){
-        if(tokens.size() != 4){
-            return "please provide a collector name and an ip\n    ex: set collector gcs 127.0.0.1";
+        if(tokens.size() != 5){
+            return "please provide a collector name, ip, and port\n    ex: set collector gcs 127.0.0.1 53";
         }
 
         std::string collector_id = tokens[2];
 
         asio::error_code ec;
-        asio::ip::address ip = asio::ip::make_address(tokens[3], ec);
+        asio::ip::address address = asio::ip::make_address(tokens[3], ec);
 
         if(ec){
             return "please provide a valid ipv4 address";
         }
 
-        current_state.collectors.insert(std::pair<std::string, std::string>(collector_id, ip.to_string()));
-        return collector_id+" added with ip "+ip.to_string();
+        asio::ip::udp::endpoint endpoint(address, std::stoi(tokens[4]));
+
+        current_state.collectors.insert(std::pair(collector_id, endpoint));
+        return collector_id+" added with ip "+tokens[3]+":"+tokens[4];
     }else if(tokens[0] == "get"){
         if(tokens.size() != 3){
             return "please provide a collector to get\n    ex: get collector gcs";
@@ -244,8 +254,9 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
         if(index == current_state.collectors.end()){
             return "collector '"+collector_to_get+"' not found";
         }else{
-            std::string response = collector_to_get+": "+index->second;
-            return response;
+            std::stringstream response;
+            response << collector_to_get << ": " << index->second;
+            return response.str();
         }
     }else if(tokens[0] == "delete"){
         if(tokens.size() != 3){
@@ -283,7 +294,7 @@ std::string command_handler::help_command(){
 
     response += "for the 'collector' system you can use the commands:\n";
     response += "    get, set, list, delete\n";
-    response += "ex: 'get collector gcs' or 'list collector' or 'set collector gcs 127.0.0.1' or 'delete collector gcs'\n\n";
+    response += "ex: 'get collector gcs' or 'list collector' or 'set collector gcs 127.0.0.1 53' or 'delete collector gcs'\n\n";
 
     response += "intended usage for each target system will be clarified if used incorrectly.\n\n";
     return response;
