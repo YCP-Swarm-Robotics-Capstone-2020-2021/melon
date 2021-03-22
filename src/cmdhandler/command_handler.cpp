@@ -378,29 +378,67 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         // list out the state variables related to the camera
         // ex: url, camera_matrix, marker_dictionary, etc.
 
-        return "needs implemented";
-    }else if(tokens[0] == "set"){
+        std::stringstream response;
+        response << "Current camera variables:";
 
+        //add url variable
+        response << "\n    url: "+current_state.camera.url;
+
+
+        return response.str();
+    }else if(tokens[0] == "set"){
         // check which variable they want to set (would be in tokens[2])
         // ex: url, camera_matrix, marker_dictionary, etc.
 
         // depending on which variable it is, parse out the values from string in tokens[3] and add to current state
+        if(tokens.size() < 3){
+            return "please provide a variable to set\n    ex: set camera url http://example.com";
+        }
 
-        return "needs implemented";
+        std::string variable = tokens[2];
+
+        if(variable == "url"){
+            if(tokens.size() < 4){
+                return "please provide a value for variable '"+variable+"'\n    ex: set camera url http://example.com";
+            }
+            current_state.camera.url = tokens[3];
+            return "camera url set to '"+tokens[3]+"'";
+        }
+
+        return "variable '"+variable+"' does not exist";
     }else if(tokens[0] == "get"){
         // check which variable they want to get (tokens[2])
         // ex: url, camera_matrix, marker_dictionary, etc.
 
         // depending on which variable, get values from current state and add to response string
+        if(tokens.size() < 3){
+            return "please provide a variable to get\n    ex: get camera url http://example.com";
+        }
 
-        return "needs implemented";
+        std::string variable = tokens[2];
+
+        if(variable == "url"){
+            return "url: "+current_state.camera.url;
+        }
+
+        return "variable '"+variable+"' does not exist";
     }else if(tokens[0] == "delete"){
         // check which variable they want to clear (tokens[2])
         // ex: url, camera_matrix, marker_dictionary, etc.
 
         // alert user of successful clearing or if they variable they gave doesn't exist
+        if(tokens.size() < 3){
+            return "please provide a variable to delete\n    ex: delete camera url";
+        }
 
-        return "needs implemented";
+        std::string variable = tokens[2];
+
+        if(variable == "url"){
+            current_state.camera.url = "";
+            return "'"+variable+"' variable has been deleted";
+        }
+
+        return "variable '"+variable+"' does not exist";
     }else{
         return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
     }
