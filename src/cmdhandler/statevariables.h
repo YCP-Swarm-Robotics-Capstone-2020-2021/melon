@@ -9,12 +9,14 @@
 #include <vector>
 #include <string>
 #include <atomic>
+#include <asio.hpp>
+#include <asio/ip/udp.hpp>
 
 class Variables
 {
 public:
     std::unordered_map<std::string, std::vector<int>> robots;
-    std::unordered_map<std::string, std::string> collectors;
+    std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
 protected:
     Variables() = default;
 };

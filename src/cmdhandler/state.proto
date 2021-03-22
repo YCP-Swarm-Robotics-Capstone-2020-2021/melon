@@ -3,8 +3,13 @@ syntax = "proto3";
 message MarkerIds{
   repeated int32 ids = 1;
 }
+message Endpoint
+{
+  string address = 1;
+  int32 port = 2;
+}
 
 message State {
   map<string, MarkerIds> robots = 1;
-  map<string, string> collectors = 2;
+  map<string, Endpoint> collectors = 2;
 }
