@@ -372,6 +372,14 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
     }
 }
 
+/**
+ * Modifies variables in the 'CameraSystem' struct in 'Variables' class. <br>
+ * system functions (on variables mentioned above): set, get, list, and delete
+ *
+ * @param tokens tokenized vector version of user command
+ * @param current_state server's current state struct
+ * @return response to user command as string
+ */
 std::string command_handler::camera_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == "list"){
 
