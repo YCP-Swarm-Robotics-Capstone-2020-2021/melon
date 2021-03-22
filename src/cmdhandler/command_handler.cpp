@@ -129,6 +129,14 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
 }
 
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
+    if(!std::filesystem::exists(SAVE_STATE_DIR)){
+        std::error_code ec;
+        if(!std::filesystem::create_directory(SAVE_STATE_DIR, ec)){
+            std::cerr << ec.message() << std::endl;
+            return "Error creating save state directory";
+        }
+    }
+
     if(tokens[0] == "save"){
         if(tokens.size() != 3){
             return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
@@ -216,7 +224,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //get file names in the 'states' directory
         for (const auto & entry : std::filesystem::directory_iterator(SAVE_STATE_DIR)){
-            std::string filename_string = std::string(entry.path());
+            std::string filename_string = entry.path().string();
             response += "\n    "+filename_string.substr(filename_string.find_last_of("/") + 1);
         }
 
