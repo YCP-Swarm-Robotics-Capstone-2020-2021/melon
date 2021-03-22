@@ -2,8 +2,22 @@
 // Created by tim on 2/27/21.
 //
 
-//---no return response should have any new line characters at the start or end
-
+/**
+ * This 'command handler' breaks things up into 'target systems'.
+ *
+ * Each target system returns a string that is the server's response
+ * to the given command (these responses are sent/logged in the session class, do_read function).
+ *
+ * Each target system has a set (or one, or none) of state variables it modifies/reads.
+ * For example:
+ *      The 'robot' target system handles the 'robot' state variable
+ * Another example:
+ *      The 'state' target system doesn't have any state variables it modifies/reads.
+ *      This is because it simply saves/loads states into/out of memory.
+ *
+ *  NOTE:
+ *      No return responses should have any new line characters at the start/end.
+ */
 #include "command_handler.h"
 
 //these commands require a target system to be given alongside them
@@ -11,6 +25,13 @@ std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"}
 
 const std::string SAVE_STATE_DIR = "states/";
 
+/**
+ * Do a command by calling a specific target system depending on user command string.
+ *
+ * @param tokens tokenized vector version of user command
+ * @param current_state server's current state struct
+ * @return response to user command as string
+ */
 std::string command_handler::do_command(const std::vector<std::string>& tokens, StateVariables& current_state){
     std::string command = tokens[0];
 
@@ -41,7 +62,14 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
     }
 }
 
-std::vector<std::string> command_handler::tokenize_values(const std::string& values){
+/**
+ * Tokenize (split) a value string by commas. <br>
+ * Used for when a target system takes a value parameter as a comma separated list.
+ *
+ * @param values value string to tokenize
+ * @return a vector of strings
+ */
+std::vector<std::string> command_handler::tokenize_values_by_commas(const std::string& values){
     std::vector<std::string> tokens;
 
     std::string delimiter = ",";
@@ -57,6 +85,15 @@ std::vector<std::string> command_handler::tokenize_values(const std::string& val
     return tokens;
 }
 
+/**
+ * Modifies the 'robots' state variable. <br>
+ * A robot has a name and a collection of 4 marker int ids. <br>
+ * system functions: set, get, list, and delete robots
+ *
+ * @param tokens tokenized vector version of user command
+ * @param current_state server's current state struct
+ * @return response to user command as string
+ */
 std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
@@ -75,7 +112,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
 
         std::string robot_id = tokens[2];
         //tokenize by commas
-        std::vector<std::string> values = tokenize_values(tokens[3]);
+        std::vector<std::string> values = tokenize_values_by_commas(tokens[3]);
         //convert string values to ints
         std::vector<int> values_as_int;
         for(int i = 0; i < values.size(); i++){
@@ -128,6 +165,13 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
     }
 }
 
+/**
+ * Saves and loads current state configurations to binary files in the 'states/' directory
+ *
+ * @param tokens tokenized vector version of user command
+ * @param current_state server's current state struct
+ * @return response to user command as string
+ */
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(!std::filesystem::exists(SAVE_STATE_DIR)){
         std::error_code ec;
@@ -234,6 +278,15 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
     }
 }
 
+/**
+ * Modifies the 'collectors' state variable. <br>
+ * A collector has a name and an ip address associated with it, collectors receive data via udp from camera. <br>
+ * system functions: set, get, list, and delete collectors
+ *
+ * @param tokens tokenized vector version of user command
+ * @param current_state server's current state struct
+ * @return response to user command as string
+ */
 std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
     if(tokens[0] == "list"){
         std::string response = "Current collectors:";
@@ -294,6 +347,11 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
     }
 }
 
+/**
+ * Display available target systems/commands to user
+ *
+ * @return help string
+ */
 std::string command_handler::help_command(){
     std::string response = "current target systems:\n";
     response += "    robot, state, collector\n\n";

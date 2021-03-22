@@ -19,7 +19,7 @@ public:
     void start();
 private:
     std::string get_command(char data[], std::size_t length);
-    std::vector<std::string> tokenize_command(std::string command);
+    std::vector<std::string> tokenize_command_by_spaces(std::string command);
 
     void do_read();
 
