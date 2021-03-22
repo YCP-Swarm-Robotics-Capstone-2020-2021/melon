@@ -31,6 +31,8 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
             return state_system(tokens, current_state);
         }else if(target_system == "collector"){
             return collector_system(tokens, current_state);
+        }else if(target_system == "camera"){
+            return camera_system(tokens, current_state);
         }else{
             return "target system: '"+target_system+"' not found";
         }
@@ -294,23 +296,63 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
     }
 }
 
+std::string command_handler::camera_system(const std::vector<std::string>& tokens, StateVariables& current_state){
+    if(tokens[0] == "list"){
+
+        // list out the state variables related to the camera
+        // ex: url, camera_matrix, marker_dictionary, etc.
+
+        return "needs implemented";
+    }else if(tokens[0] == "set"){
+
+        // check which variable they want to set (would be in tokens[2])
+        // ex: url, camera_matrix, marker_dictionary, etc.
+
+        // depending on which variable it is, parse out the values from string in tokens[3] and add to current state
+
+        return "needs implemented";
+    }else if(tokens[0] == "get"){
+        // check which variable they want to get (tokens[2])
+        // ex: url, camera_matrix, marker_dictionary, etc.
+
+        // depending on which variable, get values from current state and add to response string
+
+        return "needs implemented";
+    }else if(tokens[0] == "delete"){
+        // check which variable they want to clear (tokens[2])
+        // ex: url, camera_matrix, marker_dictionary, etc.
+
+        // alert user of successful clearing or if they variable they gave doesn't exist
+
+        return "needs implemented";
+    }else{
+        return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
+    }
+}
+
 std::string command_handler::help_command(){
     std::string response = "current target systems:\n";
-    response += "    robot, state, collector\n\n";
+    response += "    robot, state, collector, camera\n\n";
 
     response += "for the 'robot' system you can use the commands:\n";
     response += "    get, set, list, delete\n";
     response += "ex: 'get robot robot_1' or 'list robot' or 'set robot robot1 1,2,3,4' or 'delete robot robot1'\n\n";
 
     response += "for the 'state' system you can use the commands:\n";
-    response += "    save, load, delete\n";
-    response += "ex: 'save state config1' or 'load state config1' or 'delete state config1'\n";
+    response += "    save, load, delete, list\n";
+    response += "ex: 'save state config1' or 'load state config1' or 'delete state config1' or 'list state'\n";
     response += "NOTE: keyword 'current' is used for clearing current state ('delete state current'). Cannot save a state with the name 'current'\n\n";
 
     response += "for the 'collector' system you can use the commands:\n";
     response += "    get, set, list, delete\n";
     response += "ex: 'get collector gcs' or 'list collector' or 'set collector gcs 127.0.0.1' or 'delete collector gcs'\n\n";
 
-    response += "intended usage for each target system will be clarified if used incorrectly.\n\n";
+    response += "for the 'camera' system you can use the commands:\n";
+    response += "    get, set, list, delete\n";
+    response += "you can modify the following variables:\n";
+    response += "    url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
+    response += "ex: 'get camera url' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera url'\n\n";
+
+    response += "intended usage for each target system/variable will be clarified if used incorrectly.\n\n";
     return response;
 }
