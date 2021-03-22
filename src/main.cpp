@@ -13,6 +13,7 @@
 
 #include "cmdhandler/server.h"
 #include "camera/opencvcamera.h"
+#include "collectorserver/collectorserver.h"
 
 void update_state_variables(GlobalState& state);
 void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> state);
@@ -75,12 +76,26 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
     // TODO: Connect to camera
     std::unique_ptr<Camera> camera = std::make_unique<OpenCvCamera>(local_variables);
+    //camera->connect();
+
+    CollectorServer server(local_variables);
 
     // TODO: Loop while camera should be connected (indicated within the state variables, there should be a variable
     //       that specifies if the user has requested a camera disconnect or not)
-    bool loop = false;
+    bool loop = true;
     while (loop)
     {
+        // Apply any changes to state variables
+        if(state->apply(local_variables))
+        {
+            camera->update_state(local_variables);
+            server.update_state(local_variables);
+        }
 
+        // TODO: Actually generate/get data
+        std::string data = "data";
+        server.send(data);
+        // TODO: Remove this line. It's just for testing that the server is sending data properly
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

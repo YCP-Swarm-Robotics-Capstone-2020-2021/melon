@@ -1,5 +1,6 @@
 #include "collectorserver.h"
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 CollectorServer::CollectorServer(StateVariables& state) : m_socket(m_service), m_message_count(0)
 {
@@ -17,16 +18,22 @@ void CollectorServer::send(const std::string& data)
 {
     std::stringstream ss;
 
-    ss << "{\"messageNum\": \"" << m_message_count++ << "\", \"data\": \"" << data << "\"}";
+    ss << "{\"num\": \"" << m_message_count++ << "\", \"data\": \"" << data << "\"}";
     std::string message = ss.str();
+    spdlog::info("Sending message to endpoints. Message: {}", message);
 
     for(auto& endpoint : m_endpoints)
     {
+        std::stringstream ss;
+        ss << "Sending message to " << endpoint;
+        spdlog::info(ss.str());
         asio::error_code error;
         m_socket.send_to(asio::buffer(message), endpoint, 0, error);
         if(error)
-            spdlog::error("Error sending message to '%s':\n%s", endpoint.address().to_string(), error.message());
+            spdlog::error("Error sending message to '{}':\n{}", endpoint.address().to_string(), error.message());
     }
+
+    spdlog::info("Message sent to all endpoints");
 }
 
 void CollectorServer::update_state(StateVariables& state)
