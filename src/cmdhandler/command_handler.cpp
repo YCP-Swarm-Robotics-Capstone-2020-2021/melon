@@ -239,7 +239,19 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
             return "please provide a valid ipv4 address";
         }
 
-        asio::ip::udp::endpoint endpoint(address, std::stoi(tokens[4]));
+        // make sure the given port is valid
+        unsigned short port;
+        try{
+            int p = std::stoi(tokens[4]);
+            if(p < 1 || p > 65535)
+                return "please provide a valid port number";
+            port = p;
+        }catch(const std::invalid_argument& err){
+            // if user gives a non-valid port, let them know
+            return "please provide a valid port number";
+        }
+
+        asio::ip::udp::endpoint endpoint(address, port);
 
         current_state.collectors.insert(std::pair(collector_id, endpoint));
         return collector_id+" added with ip "+tokens[3]+":"+tokens[4];
