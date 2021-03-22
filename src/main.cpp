@@ -10,9 +10,12 @@
 #include <sstream>
 #include <chrono>
 #include <iomanip>
+#include <filesystem>
 
 #include "cmdhandler/server.h"
 #include "camera/opencvcamera.h"
+
+const std::string LOG_DIR = "logs/";
 
 void update_state_variables(GlobalState& state);
 void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> state);
@@ -22,11 +25,20 @@ int main(int argc, char** argv)
     //start logging
     //will open file stream and redirect stdout to said file.
     {
+        if(!std::filesystem::exists(LOG_DIR)){
+            std::error_code ec;
+            if(!std::filesystem::create_directory(LOG_DIR, ec)){
+                std::cerr << "Error creating log directory" << std::endl;
+                std::cerr << ec.message() << std::endl;
+                return -1;
+            }
+        }
+
         // Assemble the log file's name based on the current date and time
         auto now = std::chrono::system_clock::now();
         std::time_t now_c = std::chrono::system_clock::to_time_t(now);
         std::stringstream ss;
-        ss << "./logs/log-";
+        ss << "./"+LOG_DIR+"/log-";
         ss << std::put_time(std::localtime(&now_c), "%m-%d-%Y_%H-%M-%S");
         ss << ".txt";
 

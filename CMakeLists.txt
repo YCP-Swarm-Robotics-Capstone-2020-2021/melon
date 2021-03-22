@@ -26,7 +26,7 @@ file(GLOB_RECURSE SRC
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable(melon ${PROTO_SRCS} ${PROTO_HDRS} ${SRC})
 
-target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog)
+target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog stdc++fs)
 
 if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")

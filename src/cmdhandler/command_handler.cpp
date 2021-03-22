@@ -9,6 +9,8 @@
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
+const std::string SAVE_STATE_DIR = "states/";
+
 std::string command_handler::do_command(const std::vector<std::string>& tokens, StateVariables& current_state){
     std::string command = tokens[0];
 
@@ -127,6 +129,14 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
 }
 
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
+    if(!std::filesystem::exists(SAVE_STATE_DIR)){
+        std::error_code ec;
+        if(!std::filesystem::create_directory(SAVE_STATE_DIR, ec)){
+            spdlog::error(ec.message());
+            return "Error creating save state directory";
+        }
+    }
+
     if(tokens[0] == "save"){
         if(tokens.size() != 3){
             return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
@@ -151,7 +161,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_collectors())[collector.first] = collector.second;
         }
 
-        std::fstream output(save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+        std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
@@ -163,7 +173,12 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string load_name = tokens[2];
 
         State state_to_load;
-        std::fstream input(load_name, std::ios::in | std::ios::binary);
+        std::fstream input(SAVE_STATE_DIR+load_name, std::ios::in | std::ios::binary);
+
+        //check if the given state file even exists, if exists parse in using protobuf
+        if(!input.is_open()){
+            return "given state '"+load_name+"' does not exist";
+        }
         state_to_load.ParseFromIstream(&input);
 
         //clear robots state variable, fill from loaded State instance above
@@ -182,6 +197,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collectors.insert(std::pair<std::string, std::string>(collector.first, collector.second));
         }
 
+        input.close();
         return "current state loaded from '"+load_name+"'";
     }else if(tokens[0] == "delete"){
         if(tokens.size() != 3){
@@ -191,18 +207,28 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string state_to_delete = tokens[2];
 
         //if value is 'current', clear out current state
-        //if not, attempt to delete save state's file
+        //if not, attempt to delete given save state's file
         if(state_to_delete == "current"){
             current_state.robots.clear();
             current_state.collectors.clear();
             return "current state has been cleared";
         }else{
-            if(remove(state_to_delete.c_str()) != 0){
-                return "saved state '"+state_to_delete+"' does not exist";
-            }else{
+            if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
                 return "state '"+state_to_delete+"' has been removed";
+            }else{
+                return "saved state '"+state_to_delete+"' does not exist";
             }
         }
+    }else if(tokens[0] == "list"){
+        std::string response = "Saved states:";
+
+        //get file names in the 'states' directory
+        for (const auto & entry : std::filesystem::directory_iterator(SAVE_STATE_DIR)){
+            std::string filename_string = entry.path().string();
+            response += "\n    "+filename_string.substr(filename_string.find_last_of("/") + 1);
+        }
+
+        return response;
     }else{
         return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
     }
