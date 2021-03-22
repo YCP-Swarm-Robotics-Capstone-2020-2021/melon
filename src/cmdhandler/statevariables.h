@@ -6,6 +6,7 @@
 #define MELON_STATEVARIABLES_H
 
 #include <unordered_map>
+#include <opencv2/core/mat.hpp>
 #include <vector>
 #include <string>
 #include <atomic>
@@ -22,11 +23,21 @@ struct CollectorSystem
     std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
 };
 
+struct CameraSystem
+{
+    std::string url;
+    cv::Mat camera_matrix;
+    cv::Mat distortion_matrix;
+    int marker_dictionary;
+    std::unordered_map<std::string, bool> options;
+};
+
 class Variables
 {
 public:
     RobotSystem robot;
     CollectorSystem collector;
+    CameraSystem camera;
 protected:
     Variables() = default;
 };
