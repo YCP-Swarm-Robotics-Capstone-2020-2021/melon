@@ -12,11 +12,21 @@
 #include <asio.hpp>
 #include <asio/ip/udp.hpp>
 
+struct RobotSystem
+{
+    std::unordered_map<std::string, std::vector<int>> robots;
+};
+
+struct CollectorSystem
+{
+    std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
+};
+
 class Variables
 {
 public:
-    std::unordered_map<std::string, std::vector<int>> robots;
-    std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
+    RobotSystem robot;
+    CollectorSystem collector;
 protected:
     Variables() = default;
 };

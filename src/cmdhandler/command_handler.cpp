@@ -100,7 +100,7 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
 std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == "list"){
         std::string response = "Current robots:";
-        for(auto const& robot : current_state.robots){
+        for(auto const& robot : current_state.robot.robots){
             response += "\n    "+robot.first+": ";
             for(auto const& marker_id : robot.second){
                 response += std::to_string(marker_id)+",";
@@ -127,7 +127,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
             }
         }
 
-        current_state.robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
+        current_state.robot.robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
         return robot_id+" added with marker values "+tokens[3];
     }else if(tokens[0] == "get"){
         if(tokens.size() != 3){
@@ -135,9 +135,9 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
         }
 
         std::string robot_to_get = tokens[2];
-        auto index = current_state.robots.find(robot_to_get);
+        auto index = current_state.robot.robots.find(robot_to_get);
 
-        if(index == current_state.robots.end()){
+        if(index == current_state.robot.robots.end()){
             return "robot '"+robot_to_get+"' not found";
         }else{
             std::string response = robot_to_get+":\n    ";
@@ -153,12 +153,12 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
         }
 
         //get count of robots before attempting delete
-        int initial_num_robots = current_state.robots.size();
+        int initial_num_robots = current_state.robot.robots.size();
         std::string robot_to_delete = tokens[2];
 
         //remove given robot, if size didn't decrease, robot didn't exist
-        current_state.robots.erase(robot_to_delete);
-        if(current_state.robots.size() < initial_num_robots){
+        current_state.robot.robots.erase(robot_to_delete);
+        if(current_state.robot.robots.size() < initial_num_robots){
             return "robot '"+robot_to_delete+"' has been removed";
         }else{
             return "robot '"+robot_to_delete+"' does not exist";
@@ -198,13 +198,13 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //save "robots" map
         State state_to_save;
-        for(auto const& robot : current_state.robots){
+        for(auto const& robot : current_state.robot.robots){
             for(auto const& marker_id : robot.second)
                 (*state_to_save.mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
         }
 
         //save "collectors" map
-        for(auto const& collector : current_state.collectors){
+        for(auto const& collector : current_state.collector.collectors){
             Endpoint endpoint;
             endpoint.set_address(collector.second.address().to_string());
             endpoint.set_port(collector.second.port());
@@ -232,22 +232,22 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         state_to_load.ParseFromIstream(&input);
 
         //clear robots state variable, fill from loaded State instance above
-        current_state.robots.clear();
+        current_state.robot.robots.clear();
         for(auto const &robot : state_to_load.robots()){
             std::vector<int> marker_ids_to_save;
             for(auto const &marker_id : robot.second.ids()){
                 marker_ids_to_save.push_back(marker_id);
             }
-            current_state.robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
+            current_state.robot.robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
         }
 
         //clear collector state variable, fill from loaded State
-        current_state.collectors.clear();
+        current_state.collector.collectors.clear();
         for(auto const &collector : state_to_load.collectors()){
             auto endpoint = asio::ip::udp::endpoint(
                     asio::ip::make_address(collector.second.address()),
                     collector.second.port());
-            current_state.collectors.insert(std::pair(collector.first, endpoint));
+            current_state.collector.collectors.insert(std::pair(collector.first, endpoint));
         }
 
         input.close();
@@ -262,8 +262,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //if value is 'current', clear out current state
         //if not, attempt to delete given save state's file
         if(state_to_delete == "current"){
-            current_state.robots.clear();
-            current_state.collectors.clear();
+            current_state.robot.robots.clear();
+            current_state.collector.collectors.clear();
             return "current state has been cleared";
         }else{
             if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
@@ -301,7 +301,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
         std::stringstream response;
         response << "Current collectors:";
 
-        for(auto const& collector : current_state.collectors){
+        for(auto const& collector : current_state.collector.collectors){
             response << "\n    " + collector.first << ": " << collector.second;
         }
 
@@ -334,7 +334,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
 
         asio::ip::udp::endpoint endpoint(address, port);
 
-        current_state.collectors.insert(std::pair(collector_id, endpoint));
+        current_state.collector.collectors.insert(std::pair(collector_id, endpoint));
         return collector_id+" added with ip "+tokens[3]+":"+tokens[4];
     }else if(tokens[0] == "get"){
         if(tokens.size() != 3){
@@ -342,9 +342,9 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
         }
 
         std::string collector_to_get = tokens[2];
-        auto index = current_state.collectors.find(collector_to_get);
+        auto index = current_state.collector.collectors.find(collector_to_get);
 
-        if(index == current_state.collectors.end()){
+        if(index == current_state.collector.collectors.end()){
             return "collector '"+collector_to_get+"' not found";
         }else{
             std::stringstream response;
@@ -357,12 +357,12 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
         }
 
         //get count of collector before attempting delete
-        int initial_num_collectors = current_state.collectors.size();
+        int initial_num_collectors = current_state.collector.collectors.size();
         std::string collector_to_delete = tokens[2];
 
         //remove given collector, if size didn't decrease, collector didn't exist
-        current_state.collectors.erase(collector_to_delete);
-        if(current_state.collectors.size() < initial_num_collectors){
+        current_state.collector.collectors.erase(collector_to_delete);
+        if(current_state.collector.collectors.size() < initial_num_collectors){
             return "collector '"+collector_to_delete+"' has been removed";
         }else{
             return "collector '"+collector_to_delete+"' does not exist";
