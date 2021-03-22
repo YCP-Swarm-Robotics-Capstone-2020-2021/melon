@@ -9,6 +9,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <filesystem>
+#include <spdlog/spdlog.h>
 #include "statevariables.h"
 #include "state.pb.h"
 

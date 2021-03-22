@@ -132,7 +132,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
     if(!std::filesystem::exists(SAVE_STATE_DIR)){
         std::error_code ec;
         if(!std::filesystem::create_directory(SAVE_STATE_DIR, ec)){
-            std::cerr << ec.message() << std::endl;
+            spdlog::error(ec.message());
             return "Error creating save state directory";
         }
     }
