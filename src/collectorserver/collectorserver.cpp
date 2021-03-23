@@ -39,8 +39,8 @@ void CollectorServer::send(const std::string& data)
 void CollectorServer::update_state(StateVariables& state)
 {
     m_endpoints.clear();
-    m_endpoints.reserve(state.collectors.size());
-    for(auto& pair: state.collectors)
+    m_endpoints.reserve(state.collector.collectors.size());
+    for(auto& pair: state.collector.collectors)
     {
         m_endpoints.push_back(pair.second);
     }

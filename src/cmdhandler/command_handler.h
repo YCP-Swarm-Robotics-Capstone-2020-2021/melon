@@ -20,8 +20,11 @@ private:
     static std::string robot_system(const std::vector<std::string>& tokens, StateVariables& current_state);
     static std::string state_system(const std::vector<std::string>& tokens, StateVariables& current_state);
     static std::string collector_system(const std::vector<std::string>& tokens, StateVariables& current_state);
+    static std::string camera_system(const std::vector<std::string>& tokens, StateVariables& current_state);
     static std::string help_command();
     static std::vector<std::string> tokenize_values_by_commas(const std::string& values);
+    static cv::Mat values_by_comma_to_mat(const std::vector<std::string>& values, const int rows);
+    static std::string build_matrix_string(const cv::Mat& matrix);
 };
 
 

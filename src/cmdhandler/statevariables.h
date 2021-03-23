@@ -6,17 +6,38 @@
 #define MELON_STATEVARIABLES_H
 
 #include <unordered_map>
+#include <opencv2/core/mat.hpp>
 #include <vector>
 #include <string>
 #include <atomic>
 #include <asio.hpp>
 #include <asio/ip/udp.hpp>
 
+struct RobotSystem
+{
+    std::unordered_map<std::string, std::vector<int>> robots;
+};
+
+struct CollectorSystem
+{
+    std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
+};
+
+struct CameraSystem
+{
+    std::string url;
+    cv::Mat camera_matrix;
+    cv::Mat distortion_matrix;
+    int marker_dictionary = 0;
+    std::unordered_map<std::string, bool> camera_options;
+};
+
 class Variables
 {
 public:
-    std::unordered_map<std::string, std::vector<int>> robots;
-    std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
+    RobotSystem robot;
+    CollectorSystem collector;
+    CameraSystem camera;
 protected:
     Variables() = default;
 };
