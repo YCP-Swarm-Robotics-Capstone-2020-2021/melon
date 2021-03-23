@@ -88,7 +88,7 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
     return tokens;
 }
 
-cv::Mat command_handler::values_by_comma_to_mat(std::vector<std::string> values){
+cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& values){
     std::vector<double> values_as_double;
     for(int i = 0; i < values.size(); i++){
         try{
