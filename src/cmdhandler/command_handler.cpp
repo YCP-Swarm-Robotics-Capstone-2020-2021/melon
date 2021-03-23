@@ -25,6 +25,8 @@
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
 const std::string SAVE_STATE_DIR = "states/";
+const int CAMERA_MATRIX_ROWS = 3;
+const int DISTORTION_MATRIX_ROWS = 5;
 
 /**
  * Do a command by calling a specific target system depending on user command string.
@@ -296,16 +298,22 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         current_state.camera.url = state_to_load.url();
 
         //clear camera_matrix state variable, fill from loaded state
-        current_state.camera.camera_matrix.release();
+        current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
+        std::vector<double> values;
         for(auto const &value : state_to_load.camera_matrix()){
-            current_state.camera.camera_matrix.push_back(value);
-        }
+            values.push_back(value);
+        };
+        cv::Mat new_camera_matrix (values);
+        current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CAMERA_MATRIX_ROWS).clone();
 
         //clear distortion_state variable, fill from loaded state
-        current_state.camera.distortion_matrix.release();
+        current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());;
+        values.clear();
         for(auto const &value : state_to_load.distortion_matrix()){
-            current_state.camera.distortion_matrix.push_back(value);
+            values.push_back(value);
         }
+        cv::Mat new_distortion_matrix (values);
+        current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, DISTORTION_MATRIX_ROWS).clone();
 
         //fill marker_dictionary variable from loaded state
         current_state.camera.marker_dictionary = state_to_load.marker_dictionary();
@@ -331,8 +339,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.robot.robots.clear();
             current_state.collector.collectors.clear();
             current_state.camera.url.clear();
-            current_state.camera.camera_matrix.release();
-            current_state.camera.distortion_matrix.release();
+            current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
+            current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
             current_state.camera.marker_dictionary = 0;
             current_state.camera.camera_options.clear();
             return "current state has been cleared";
@@ -518,7 +526,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 }
 
                 try{
-                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, 3);
+                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, CAMERA_MATRIX_ROWS);
                     return "'"+variable+"' variable set with values "+tokens[3];
                 }catch(const std::invalid_argument& err){
                     spdlog::error(err.what());
@@ -530,7 +538,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 }
 
                 try{
-                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, 5);
+                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, DISTORTION_MATRIX_ROWS);
                     return "'"+variable+"' variable set with values "+tokens[3];
                 }catch(const std::invalid_argument& err){
                     spdlog::error(err.what());
@@ -620,9 +628,9 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         if(variable == "url"){
             current_state.camera.url = "";
         }else if(variable == "camera_matrix"){
-            current_state.camera.camera_matrix.release();
+            current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
         }else if(variable == "distortion_matrix"){
-            current_state.camera.distortion_matrix.release();
+            current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());;
         }else if(variable == "marker_dictionary"){
             current_state.camera.marker_dictionary = 0;
         }else if(variable == "camera_options"){
