@@ -105,6 +105,26 @@ cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& 
     cv::Mat return_mat (values_as_double);
     return return_mat.reshape(1,rows).clone();
 }
+
+/**
+ * Build a "x,x,x,x," list based on a matrix's values
+ *
+ * @param matrix matrix with values to add to return string
+ * @return string for server response
+ */
+std::string command_handler::build_matrix_string(const cv::Mat& matrix){
+    std::stringstream response;
+
+    for (int row = 0; row < matrix.rows; ++row) {
+        for (int col = 0; col < matrix.cols; ++col) {
+            response << matrix.at<double>(row, col);
+            response << ",";
+        }
+    }
+
+    return response.str();
+}
+
 /**
  * Modifies the 'robots' state variable. <br>
  * A robot has a name and a collection of 4 marker int ids. <br>
@@ -470,22 +490,12 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         //add camera_matrix variable
         response << "\n    camera_matrix: ";
         cv::Mat camera_matrix = current_state.camera.camera_matrix;
-        for (int row = 0; row < camera_matrix.rows; ++row) {
-            for (int col = 0; col < camera_matrix.cols; ++col) {
-                response << camera_matrix.at<double>(row, col);
-                response << ",";
-            }
-        }
+        response << build_matrix_string(camera_matrix);
 
         //add distortion_matrix variable
         response << "\n    distortion_matrix: ";
         cv::Mat distortion_matrix = current_state.camera.distortion_matrix;
-        for (int row = 0; row < distortion_matrix.rows; ++row) {
-            for (int col = 0; col < distortion_matrix.cols; ++col) {
-                response << distortion_matrix.at<double>(row, col);
-                response << ",";
-            }
-        }
+        response << build_matrix_string(distortion_matrix);
 
         //add marker_dictionary variable
         response << "\n    marker_dictionary: ";
@@ -596,12 +606,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 matrix_to_get = current_state.camera.distortion_matrix;
             }
 
-            for (int row = 0; row < matrix_to_get.rows; ++row) {
-                for (int col = 0; col < matrix_to_get.cols; ++col) {
-                    response << matrix_to_get.at<double>(row, col);
-                    response << ",";
-                }
-            }
+            response << build_matrix_string(matrix_to_get);
 
             return response.str();
         }else if(variable == "marker_dictionary"){

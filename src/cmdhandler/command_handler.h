@@ -24,6 +24,7 @@ private:
     static std::string help_command();
     static std::vector<std::string> tokenize_values_by_commas(const std::string& values);
     static cv::Mat values_by_comma_to_mat(const std::vector<std::string>& values, const int rows);
+    static std::string build_matrix_string(const cv::Mat& matrix);
 };
 
 
