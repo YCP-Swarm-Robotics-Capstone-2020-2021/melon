@@ -6,8 +6,7 @@ OpenCvCamera::OpenCvCamera(StateVariables& state) : Camera(state)
 
 void OpenCvCamera::connect()
 {
-    std::string url = ""; //TODO: Get camera url from variables
-    m_video_feed.open(url);
+    m_video_feed.open(get_connection_url());
 }
 
 void OpenCvCamera::disconnect()

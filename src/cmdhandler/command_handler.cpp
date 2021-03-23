@@ -20,6 +20,7 @@
  */
 #include "command_handler.h"
 #include <sstream>
+#include <algorithm>
 
 //these commands require a target system to be given alongside them
 std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
@@ -248,6 +249,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_collectors())[collector.first] = endpoint;
         }
 
+        state_to_save.set_connected(current_state.camera.connected);
+
         //save "url" string variable
         state_to_save.set_url(current_state.camera.url);
 
@@ -314,6 +317,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collector.collectors.insert(std::pair(collector.first, endpoint));
         }
 
+        current_state.camera.connected = state_to_load.connected();
+
         //fill url variable from loaded state
         current_state.camera.url = state_to_load.url();
 
@@ -358,6 +363,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         if(state_to_delete == "current"){
             current_state.robot.robots.clear();
             current_state.collector.collectors.clear();
+            current_state.camera.connected = false;
             current_state.camera.url.clear();
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
             current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
@@ -484,6 +490,9 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         std::stringstream response;
         response << "Current camera variables:";
 
+        // add connected variable
+        response << "\n    connected: "+std::string(current_state.camera.connected ? "true" : "false");
+
         //add url variable
         response << "\n    url: "+current_state.camera.url;
 
@@ -515,7 +524,27 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == "connected")
+        {
+            if(tokens.size() != 4) {
+                return "please provide true or false to indicate if the camera should be connected";
+            }
+
+            std::string val = tokens[3];
+            std::transform(val.begin(), val.end(), val.begin(), ::tolower);
+
+            if(val == "true"){
+                current_state.camera.connected = true;
+                return "camera connected set to true";
+            }
+            else if(val == "false"){
+                current_state.camera.connected = false;
+                return "camera connected set to false";
+            }
+            else{
+                return "please provide true or false to indicate if the camera should be connected";
+            }
+        }else if(variable == "url"){
             if(tokens.size() != 4){
                 return "please provide a value for variable '"+variable+"'\n    ex: set camera url http://example.com";
             }
@@ -594,7 +623,10 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == "connected")
+        {
+            return "connected: "+std::string(current_state.camera.connected ? "true" : "false");
+        }else if(variable == "url"){
             return "url: "+current_state.camera.url;
         }else if(variable == "camera_matrix" || variable == "distortion_matrix") {
             std::stringstream response;
@@ -631,7 +663,9 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == "connected"){
+            current_state.camera.connected = false;
+        }else if(variable == "url"){
             current_state.camera.url = "";
         }else if(variable == "camera_matrix"){
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
@@ -676,7 +710,7 @@ std::string command_handler::help_command(){
     response += "for the 'camera' system you can use the commands:\n";
     response += "    get, set, list (current camera variables), delete\n";
     response += "you can modify the following variables:\n";
-    response += "    url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
+    response += "    connected, url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
     response += "ex: 'get camera url' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera url'\n\n";
 
     response += "intended usage for each target system/variable will be clarified if used incorrectly.\n\n";

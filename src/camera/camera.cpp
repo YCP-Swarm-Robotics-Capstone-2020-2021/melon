@@ -1,6 +1,8 @@
 #include "camera.h"
 
-Camera::Camera(StateVariables& state)
+Camera::Camera(StateVariables& state) :
+    m_connection_url(state.camera.url),
+    m_calib({.matrix = state.camera.camera_matrix, .dist_coeffs = state.camera.distortion_matrix})
 {
 }
 

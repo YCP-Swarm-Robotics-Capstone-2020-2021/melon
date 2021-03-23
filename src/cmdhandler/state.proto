@@ -13,9 +13,10 @@ message State {
   map<string, MarkerIds> robots = 1;
   map<string, Endpoint> collectors = 2;
 
-  string url = 3;
-  repeated double camera_matrix = 4;
-  repeated double distortion_matrix = 5;
-  int32 marker_dictionary = 6;
-  map<string, bool> options = 7;
+  bool connected = 3;
+  string url = 4;
+  repeated double camera_matrix = 5;
+  repeated double distortion_matrix = 6;
+  int32 marker_dictionary = 7;
+  map<string, bool> options = 8;
 }
