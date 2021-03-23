@@ -28,7 +28,7 @@ struct CameraSystem
     std::string url;
     cv::Mat camera_matrix;
     cv::Mat distortion_matrix;
-    int marker_dictionary;
+    int marker_dictionary = 0;
     std::unordered_map<std::string, bool> options;
 };
 

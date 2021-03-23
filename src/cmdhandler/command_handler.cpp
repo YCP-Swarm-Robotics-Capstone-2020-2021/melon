@@ -243,6 +243,9 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             }
         }
 
+        //save marker_dictionary int
+        state_to_save.set_marker_dictionary(current_state.camera.marker_dictionary);
+
         std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
@@ -297,6 +300,9 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.camera.distortion_matrix.push_back(value);
         }
 
+        //fill marker_dictionary variable from loaded state
+        current_state.camera.marker_dictionary = state_to_load.marker_dictionary();
+
         input.close();
         return "current state loaded from '"+load_name+"'";
     }else if(tokens[0] == "delete"){
@@ -314,6 +320,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.camera.url.clear();
             current_state.camera.camera_matrix.release();
             current_state.camera.distortion_matrix.release();
+            current_state.camera.marker_dictionary = 0;
             return "current state has been cleared";
         }else{
             if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
@@ -458,6 +465,10 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
         }
 
+        //add marker_dictionary variable
+        response << "\n    marker_dictionary: ";
+        response << current_state.camera.marker_dictionary;
+
         return response.str();
     }else if(tokens[0] == "set"){
         if(tokens.size() < 3){
@@ -496,6 +507,18 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }catch(const std::invalid_argument& err){
                 return "please provide a comma separated list of doubles";
             }
+        }else if(variable == "marker_dictionary"){
+            if(tokens.size() < 4){
+                return "please provide an integer for variable '"+variable+"'\n    ex: set camera "+variable+" 6";
+            }
+
+            try{
+                current_state.camera.marker_dictionary = std::stoi(tokens[3]);
+            }catch(const std::invalid_argument& err){
+                return "please provide a valid integer value";
+            }
+
+            return "'"+variable+"' variable set with value "+tokens[3];
         }
 
         return "variable '"+variable+"' does not exist";
@@ -527,6 +550,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
 
             return response.str();
+        }else if(variable == "marker_dictionary"){
+            return "marker_dictionary: "+std::to_string(current_state.camera.marker_dictionary);
         }
 
         return "variable '"+variable+"' does not exist";
@@ -543,6 +568,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             current_state.camera.camera_matrix.release();
         }else if(variable == "distortion_matrix"){
             current_state.camera.distortion_matrix.release();
+        }else if(variable == "marker_dictionary"){
+            current_state.camera.marker_dictionary = 0;
         }else{
            return "variable '"+variable+"' does not exist";
         }
