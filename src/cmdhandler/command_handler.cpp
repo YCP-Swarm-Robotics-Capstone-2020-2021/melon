@@ -311,6 +311,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         current_state.camera.marker_dictionary = state_to_load.marker_dictionary();
 
         //fill camera_options map from loaded state
+        current_state.camera.camera_options.clear();
         for(auto const &option : state_to_load.options()){
             current_state.camera.camera_options.insert(std::pair<std::string, bool>(option.first, option.second));
         }
