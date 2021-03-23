@@ -95,13 +95,13 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
  * @param values vector<string> of values to put in matrix
  * @return matrix of values given in 'values'
  */
-cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& values){
+cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& values, const int rows){
     std::vector<double> values_as_double;
     for(int i = 0; i < values.size(); i++){
         values_as_double.push_back(std::stod(values[i]));
     }
     cv::Mat return_mat (values_as_double);
-    return return_mat.reshape(1,3).clone();
+    return return_mat.reshape(1,rows).clone();
 }
 /**
  * Modifies the 'robots' state variable. <br>
@@ -506,26 +506,35 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
             // cv::Mat to the chosen variable
             if(tokens.size() != 4){
-                return "please provide a comma separated list of 9 doubles for variable '"+variable+"'\n    ex: set camera "+variable+" 1926.56, 0, 1380.786, 0, 1895.6, 745.4, 0, 0, 1";
+                return "please provide a comma separated list of doubles to set a matrix\n    ex: set camera "+variable+" 1926.56, 0, 1380.786, 0, 1895.6, 745.4, 0, 0, 1";
             }
 
             std::vector<std::string> values = tokenize_values_by_commas(tokens[3]);
 
-            if(values.size() != 9){
-                return "please provide a comma separated list of 9 doubles, "+std::to_string(values.size())+" given";
-            }
-
-            try{
-                if(variable == "camera_matrix"){
-                    current_state.camera.camera_matrix = values_by_comma_to_mat(values);
-                }else if(variable == "distortion_matrix"){
-                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values);
+            if(variable == "camera_matrix"){
+                if(values.size() != 9){
+                    return "please provide a comma separated list of 9 doubles, "+std::to_string(values.size())+" given";
                 }
 
-                return "'"+variable+"' variable set with values "+tokens[3];
-            }catch(const std::invalid_argument& err){
-                spdlog::error(err.what());
-                return "please provide a comma separated list of doubles";
+                try{
+                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, 3);
+                    return "'"+variable+"' variable set with values "+tokens[3];
+                }catch(const std::invalid_argument& err){
+                    spdlog::error(err.what());
+                    return "please provide a comma separated list of doubles";
+                }
+            }else{
+                if(values.size() != 5){
+                    return "please provide a comma separated list of 5 doubles, "+std::to_string(values.size())+" given";
+                }
+
+                try{
+                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, 5);
+                    return "'"+variable+"' variable set with values "+tokens[3];
+                }catch(const std::invalid_argument& err){
+                    spdlog::error(err.what());
+                    return "please provide a comma separated list of doubles";
+                }
             }
         }else if(variable == "marker_dictionary"){
             if(tokens.size() != 4){
