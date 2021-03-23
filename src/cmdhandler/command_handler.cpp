@@ -659,7 +659,7 @@ std::string command_handler::help_command(){
     response += "ex: 'get collector gcs' or 'list collector' or 'set collector gcs 127.0.0.1 53' or 'delete collector gcs'\n\n";
 
     response += "for the 'camera' system you can use the commands:\n";
-    response += "    get, set, list, delete\n";
+    response += "    get, set, list (current camera variables), delete\n";
     response += "you can modify the following variables:\n";
     response += "    url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
     response += "ex: 'get camera url' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera url'\n\n";
