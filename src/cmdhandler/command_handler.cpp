@@ -563,6 +563,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             try{
                 current_state.camera.marker_dictionary = std::stoi(tokens[3]);
             }catch(const std::invalid_argument& err){
+                spdlog::error(err.what());
                 return "please provide a valid integer value";
             }
 
