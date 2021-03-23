@@ -88,6 +88,19 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
     return tokens;
 }
 
+cv::Mat command_handler::values_by_comma_to_mat(std::vector<std::string> values){
+    std::vector<double> values_as_double;
+    for(int i = 0; i < values.size(); i++){
+        try{
+            values_as_double.push_back(std::stod(values[i]));
+        }catch(const std::invalid_argument& err){
+            //if user gives a list containing a non float value, let them know
+            throw err;
+        }
+    }
+    cv::Mat return_mat (values_as_double);
+    return return_mat.reshape(1,3).clone();
+}
 /**
  * Modifies the 'robots' state variable. <br>
  * A robot has a name and a collection of 4 marker int ids. <br>
@@ -392,6 +405,15 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         //add url variable
         response << "\n    url: "+current_state.camera.url;
 
+        //add camera_matrix variable
+        response << "\n    camera_matrix: ";
+        cv::Mat camera_matrix = current_state.camera.camera_matrix;
+        for (int row = 0; row < camera_matrix.rows; ++row) {
+            for (int col = 0; col < camera_matrix.cols; ++col) {
+                response << camera_matrix.at<double>(row, col);
+                response << ",";
+            }
+        }
 
         return response.str();
     }else if(tokens[0] == "set"){
@@ -411,6 +433,23 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
             current_state.camera.url = tokens[3];
             return "camera url set to '"+tokens[3]+"'";
+        }else if(variable == "camera_matrix"){
+            if(tokens.size() < 4){
+                return "please provide a comma separated list of 9 doubles for variable '"+variable+"'\n    ex: set camera camera_matrix 1926.56, 0, 1380.786, 0, 1895.6, 745.4, 0, 0, 1";
+            }
+
+            std::vector<std::string> values = tokenize_values_by_commas(tokens[3]);
+
+            if(values.size() != 9){
+                return "please provide a comma separated list of 9 doubles, "+std::to_string(values.size())+" given";
+            }
+
+            try{
+                current_state.camera.camera_matrix = values_by_comma_to_mat(values);
+                return "'"+variable+"' variable set with values "+tokens[3];
+            }catch(const std::invalid_argument& err){
+                return "please provide a comma separated list of doubles";
+            }
         }
 
         return "variable '"+variable+"' does not exist";
@@ -420,13 +459,26 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         // depending on which variable, get values from current state and add to response string
         if(tokens.size() < 3){
-            return "please provide a variable to get\n    ex: get camera url http://example.com";
+            return "please provide a variable to get\n    ex: get camera url";
         }
 
         std::string variable = tokens[2];
 
         if(variable == "url"){
             return "url: "+current_state.camera.url;
+        }else if(variable == "camera_matrix") {
+            std::stringstream response;
+            response << "camera_matrix: ";
+
+            cv::Mat camera_matrix = current_state.camera.camera_matrix;
+            for (int row = 0; row < camera_matrix.rows; ++row) {
+                for (int col = 0; col < camera_matrix.cols; ++col) {
+                    response << camera_matrix.at<double>(row, col);
+                    response << ",";
+                }
+            }
+
+            return response.str();
         }
 
         return "variable '"+variable+"' does not exist";
@@ -443,6 +495,9 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         if(variable == "url"){
             current_state.camera.url = "";
+            return "'"+variable+"' variable has been deleted";
+        }else if(variable == "camera_matrix"){
+            current_state.camera.camera_matrix.release();
             return "'"+variable+"' variable has been deleted";
         }
 
