@@ -14,8 +14,8 @@ message State {
   map<string, Endpoint> collectors = 2;
 
   string url = 3;
-  repeated float camera_matrix = 4;
-  repeated float distortion_matrix = 5;
+  repeated double camera_matrix = 4;
+  repeated double distortion_matrix = 5;
   int32 marker_dictionary = 6;
   map<string, bool> options = 7;
 }

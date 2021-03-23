@@ -224,6 +224,25 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_collectors())[collector.first] = endpoint;
         }
 
+        //save "url" string variable
+        state_to_save.set_url(current_state.camera.url);
+
+        //save "camera_matrix" cv::Mat
+        cv::Mat camera_matrix = current_state.camera.camera_matrix;
+        for (int row = 0; row < camera_matrix.rows; ++row) {
+            for (int col = 0; col < camera_matrix.cols; ++col) {
+                state_to_save.mutable_camera_matrix()->Add(camera_matrix.at<double>(row, col));
+            }
+        }
+
+        //save "distortion_matrix" cv::Mat
+        cv::Mat distortion_matrix = current_state.camera.distortion_matrix;
+        for (int row = 0; row < distortion_matrix.rows; ++row) {
+            for (int col = 0; col < distortion_matrix.cols; ++col) {
+                state_to_save.mutable_distortion_matrix()->Add(distortion_matrix.at<double>(row, col));
+            }
+        }
+
         std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
@@ -263,6 +282,21 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collector.collectors.insert(std::pair(collector.first, endpoint));
         }
 
+        //fill url variable from loaded state
+        current_state.camera.url = state_to_load.url();
+
+        //clear camera_matrix state variable, fill from loaded state
+        current_state.camera.camera_matrix.release();
+        for(auto const &value : state_to_load.camera_matrix()){
+            current_state.camera.camera_matrix.push_back(value);
+        }
+
+        //clear distortion_state variable, fill from loaded state
+        current_state.camera.distortion_matrix.release();
+        for(auto const &value : state_to_load.distortion_matrix()){
+            current_state.camera.distortion_matrix.push_back(value);
+        }
+
         input.close();
         return "current state loaded from '"+load_name+"'";
     }else if(tokens[0] == "delete"){
@@ -277,6 +311,9 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         if(state_to_delete == "current"){
             current_state.robot.robots.clear();
             current_state.collector.collectors.clear();
+            current_state.camera.url.clear();
+            current_state.camera.camera_matrix.release();
+            current_state.camera.distortion_matrix.release();
             return "current state has been cleared";
         }else{
             if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
