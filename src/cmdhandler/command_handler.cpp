@@ -415,6 +415,16 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
         }
 
+        //add distortion_matrix variable
+        response << "\n    distortion_matrix: ";
+        cv::Mat distortion_matrix = current_state.camera.distortion_matrix;
+        for (int row = 0; row < distortion_matrix.rows; ++row) {
+            for (int col = 0; col < distortion_matrix.cols; ++col) {
+                response << distortion_matrix.at<double>(row, col);
+                response << ",";
+            }
+        }
+
         return response.str();
     }else if(tokens[0] == "set"){
         // check which variable they want to set (would be in tokens[2])
@@ -433,9 +443,11 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
             current_state.camera.url = tokens[3];
             return "camera url set to '"+tokens[3]+"'";
-        }else if(variable == "camera_matrix"){
+        }else if(variable == "camera_matrix" || variable == "distortion_matrix"){
+            // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
+            // cv::Mat to the chosen variable
             if(tokens.size() < 4){
-                return "please provide a comma separated list of 9 doubles for variable '"+variable+"'\n    ex: set camera camera_matrix 1926.56, 0, 1380.786, 0, 1895.6, 745.4, 0, 0, 1";
+                return "please provide a comma separated list of 9 doubles for variable '"+variable+"'\n    ex: set camera "+variable+" 1926.56, 0, 1380.786, 0, 1895.6, 745.4, 0, 0, 1";
             }
 
             std::vector<std::string> values = tokenize_values_by_commas(tokens[3]);
@@ -445,7 +457,12 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
 
             try{
-                current_state.camera.camera_matrix = values_by_comma_to_mat(values);
+                if(variable == "camera_matrix"){
+                    current_state.camera.camera_matrix = values_by_comma_to_mat(values);
+                }else if(variable == "distortion_matrix"){
+                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values);
+                }
+
                 return "'"+variable+"' variable set with values "+tokens[3];
             }catch(const std::invalid_argument& err){
                 return "please provide a comma separated list of doubles";
@@ -466,14 +483,20 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         if(variable == "url"){
             return "url: "+current_state.camera.url;
-        }else if(variable == "camera_matrix") {
+        }else if(variable == "camera_matrix" || variable == "distortion_matrix") {
             std::stringstream response;
-            response << "camera_matrix: ";
+            response << variable << ": ";
 
-            cv::Mat camera_matrix = current_state.camera.camera_matrix;
-            for (int row = 0; row < camera_matrix.rows; ++row) {
-                for (int col = 0; col < camera_matrix.cols; ++col) {
-                    response << camera_matrix.at<double>(row, col);
+            cv::Mat matrix_to_get;
+            if(variable == "camera_matrix"){
+                matrix_to_get = current_state.camera.camera_matrix;
+            }else if(variable == "distortion_matrix"){
+                matrix_to_get = current_state.camera.distortion_matrix;
+            }
+
+            for (int row = 0; row < matrix_to_get.rows; ++row) {
+                for (int col = 0; col < matrix_to_get.cols; ++col) {
+                    response << matrix_to_get.at<double>(row, col);
                     response << ",";
                 }
             }
@@ -495,13 +518,15 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         if(variable == "url"){
             current_state.camera.url = "";
-            return "'"+variable+"' variable has been deleted";
         }else if(variable == "camera_matrix"){
             current_state.camera.camera_matrix.release();
-            return "'"+variable+"' variable has been deleted";
+        }else if(variable == "distortion_matrix"){
+            current_state.camera.distortion_matrix.release();
+        }else{
+           return "variable '"+variable+"' does not exist";
         }
 
-        return "variable '"+variable+"' does not exist";
+        return "'"+variable+"' variable has been deleted";
     }else{
         return "command '"+tokens[0]+"' not valid for target system '"+tokens[1]+"'";
     }
