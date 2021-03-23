@@ -88,15 +88,17 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
     return tokens;
 }
 
+/**
+ * Send a vector<string> (doubles) to a cv::Mat. <br>
+ * Can throw an error if a non double value is given (std::invalid_argument)
+ *
+ * @param values vector<string> of values to put in matrix
+ * @return matrix of values given in 'values'
+ */
 cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& values){
     std::vector<double> values_as_double;
     for(int i = 0; i < values.size(); i++){
-        try{
-            values_as_double.push_back(std::stod(values[i]));
-        }catch(const std::invalid_argument& err){
-            //if user gives a list containing a non float value, let them know
-            throw err;
-        }
+        values_as_double.push_back(std::stod(values[i]));
     }
     cv::Mat return_mat (values_as_double);
     return return_mat.reshape(1,3).clone();
@@ -522,6 +524,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
                 return "'"+variable+"' variable set with values "+tokens[3];
             }catch(const std::invalid_argument& err){
+                spdlog::error(err.what());
                 return "please provide a comma separated list of doubles";
             }
         }else if(variable == "marker_dictionary"){
