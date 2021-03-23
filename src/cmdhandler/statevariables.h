@@ -29,7 +29,7 @@ struct CameraSystem
     cv::Mat camera_matrix;
     cv::Mat distortion_matrix;
     int marker_dictionary = 0;
-    std::unordered_map<std::string, bool> options;
+    std::unordered_map<std::string, bool> camera_options;
 };
 
 class Variables
