@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.17)
 project(melon)
 
 set(CMAKE_CXX_STANDARD 17)
-SET( CMAKE_CXX_FLAGS  "-DASIO_STANDALONE")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -DASIO_STANDALONE")
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -25,8 +25,10 @@ file(GLOB_RECURSE SRC
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable(melon ${PROTO_SRCS} ${PROTO_HDRS} ${SRC})
-
-target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog stdc++fs)
+target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog)
+if(NOT MSVC)
+    target_link_libraries(melon stdc++fs)
+endif()
 
 if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
