@@ -49,12 +49,35 @@ bool SpinnakerCamera::connect()
     if(clist.GetSize() < 1)
         return false;
 
-    // TODO: Device id
-    //m_pcam = clist.GetByDeviceID("");
-    m_pcam = clist.GetByIndex(0);
+    // Enumerate over cameras and attempt to find the camera with the given serial number
+    // CameraList does have a GetBySerial() function, but it just seems to crash the program for some reason
+    for(int i = 0; i < clist.GetSize(); ++i)
+    {
+        Spinnaker::CameraPtr pcam = clist.GetByIndex(i);
+        Spinnaker::GenApi::INodeMap& node_map = pcam->GetTLDeviceNodeMap();
+        Spinnaker::GenApi::CStringPtr pserial = node_map.GetNode("DeviceSerialNumber");
+        if(Spinnaker::GenApi::IsAvailable(pserial) && Spinnaker::GenApi::IsReadable(pserial))
+        {
+            Spinnaker::GenICam::gcstring serial = pserial->GetValue();
+            // TODO: Use serial number from StateVariables
+            if(serial == "")
+            {
+                m_pcam = pcam;
+                break;
+            }
+        }
+    }
+
+    if(m_pcam == nullptr)
+    {
+        // TODO: Insert serial number
+        spdlog::critical("Camera with serial number '{}' not found", "");
+        return false;
+    }
 
     try
     {
+        spdlog::info("Initializing camera");
         m_pcam->Init();
     }
     catch (Spinnaker::Exception& e)
