@@ -11,9 +11,11 @@
 #include <chrono>
 #include <iomanip>
 #include <filesystem>
+#include <opencv2/opencv.hpp>
 
 #include "cmdhandler/server.h"
 #include "camera/opencvcamera.h"
+#include "camera/spinnakercamera.h"
 #include "collectorserver/collectorserver.h"
 
 const std::string LOG_DIR = "logs/";
@@ -87,14 +89,16 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     state->apply(local_variables);
 
     // TODO: Connect to camera
-    std::unique_ptr<Camera> camera = std::make_unique<OpenCvCamera>(local_variables);
-    //camera->connect();
+    // TODO: Dynamically use different camera types
+    std::unique_ptr<Camera> camera = std::make_unique<SpinnakerCamera>(local_variables);
+    camera->connect();
 
     CollectorServer server(local_variables);
 
     // TODO: Loop while camera should be connected (indicated within the state variables, there should be a variable
     //       that specifies if the user has requested a camera disconnect or not)
     bool loop = true;
+    cv::Mat frame;
     while (loop)
     {
         // Apply any changes to state variables
@@ -104,10 +108,19 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
             server.update_state(local_variables);
         }
 
+        if(camera->get_frame(frame))
+        {
+            cv::resize(frame, frame, cv::Size(1280, 720));
+            cv::imshow("spinnaker cam", frame);
+        }
+
         // TODO: Actually generate/get data
         std::string data = "data";
         server.send(data);
-        // TODO: Remove this line. It's just for testing that the server is sending data properly
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+
+        if(cv::waitKey(1) == 27)
+            loop = false;
     }
+
+    camera->disconnect();
 }
