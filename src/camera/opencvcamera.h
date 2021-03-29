@@ -8,10 +8,9 @@ class OpenCvCamera : public Camera
 {
 public:
     explicit OpenCvCamera(StateVariables& state);
-    void connect() override;
-    void disconnect() override;
+    bool connect() override;
+    bool disconnect() override;
 
-protected:
     bool get_frame(cv::Mat& frame) override;
 
 private:

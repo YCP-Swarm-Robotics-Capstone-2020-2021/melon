@@ -12,8 +12,12 @@ class Camera : public UpdateableState
 public:
     virtual ~Camera() { }
 
-    virtual void connect()=0;
-    virtual void disconnect()=0;
+    // Establish a connection to the camera
+    // Return true if connection successful, false if connection was not successful
+    virtual bool connect()=0;
+    // Disconnect from the camera
+    // Return true if disconnect was successful, false if disconnect was not successful
+    virtual bool disconnect()=0;
     // Set if the camera's video feed should be available to clients
     void enable_video_output();
     void disable_video_output();

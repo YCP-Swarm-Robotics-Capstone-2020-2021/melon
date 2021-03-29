@@ -91,7 +91,11 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     // TODO: Connect to camera
     // TODO: Dynamically use different camera types
     std::unique_ptr<Camera> camera = std::make_unique<SpinnakerCamera>(local_variables);
-    camera->connect();
+    if(!camera->connect())
+    {
+        spdlog::critical("Camera connection failed");
+        exit(-1);
+    }
 
     CollectorServer server(local_variables);
 
@@ -122,5 +126,8 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
             loop = false;
     }
 
-    camera->disconnect();
+    if(!camera->disconnect())
+    {
+        spdlog::warn("Camera disconnect failed");
+    }
 }

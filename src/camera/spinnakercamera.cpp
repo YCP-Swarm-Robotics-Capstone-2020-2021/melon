@@ -41,11 +41,13 @@ bool set_node_val(Spinnaker::GenApi::INodeMap& node_map, const char* node_name, 
     return true;
 }
 
-void SpinnakerCamera::connect()
+bool SpinnakerCamera::connect()
 {
     // Get available cameras
     Spinnaker::CameraList clist = m_psys->GetCameras();
     spdlog::info("{} cameras found", clist.GetSize());
+    if(clist.GetSize() < 1)
+        return false;
 
     // TODO: Device id
     //m_pcam = clist.GetByDeviceID("");
@@ -58,7 +60,7 @@ void SpinnakerCamera::connect()
     catch (Spinnaker::Exception& e)
     {
         spdlog::critical("Error initializing camera: \n{}", e.what());
-        // TODO: Return error. Throw exception? Just return bool?
+        return false;
     }
 
     // Get camera nodes (settings)
@@ -66,22 +68,34 @@ void SpinnakerCamera::connect()
 
     // TODO: Check return type and do something if false
     // Enable "Continuous" mode so that an unspecified amount of frames can be read continuously
-    set_node_val(node_map, "AcquisitionMode", "Continuous");
+    if(!set_node_val(node_map, "AcquisitionMode", "Continuous"))
+    {
+        spdlog::error("Failed to set camera 'AcquisitionMode' to 'Continuous'");
+        return false;
+    }
     // Set the pixel format of the incoming image to BGR8 so that it's compatible with OpenCV
-    set_node_val(node_map, "PixelFormat", "BGR8");
+    if(!set_node_val(node_map, "PixelFormat", "BGR8"))
+    {
+        spdlog::error("Failed to set camera 'PixelFormat' to 'BGR8'");
+        return false;
+    }
 
     // TODO: Disable heartbeat in debug? The example does this, but I'm not sure if it's referring to debugging
     //      the hardware in some way or just having the executable compiled in debug mode
 
     // Start video capture
     m_pcam->BeginAcquisition();
+
+    return true;
 }
 
-void SpinnakerCamera::disconnect()
+bool SpinnakerCamera::disconnect()
 {
     m_pcam->EndAcquisition();
     m_pcam->DeInit();
     m_pcam = nullptr;
+
+    return true;
 }
 
 bool SpinnakerCamera::get_frame(cv::Mat& frame)
