@@ -9,7 +9,7 @@ class SpinnakerCamera : public Camera
 public:
     explicit SpinnakerCamera(StateVariables& state);
     ~SpinnakerCamera();
-    void disconnect() override ;
+    void disconnect() override;
     void connect() override;
 
     bool get_frame(cv::Mat &frame) override;

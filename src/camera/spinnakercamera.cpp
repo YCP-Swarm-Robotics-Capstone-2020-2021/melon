@@ -18,6 +18,7 @@ SpinnakerCamera::~SpinnakerCamera()
 // Returns false if node value was unable to be set, true if node value was set successfully
 bool set_node_val(Spinnaker::GenApi::INodeMap& node_map, const char* node_name, const char* value_name)
 {
+    // Get the node itself
     Spinnaker::GenApi::CEnumerationPtr node = node_map.GetNode(node_name);
     if(!Spinnaker::GenApi::IsAvailable(node) || !Spinnaker::GenApi::IsWritable(node))
     {
@@ -25,6 +26,7 @@ bool set_node_val(Spinnaker::GenApi::INodeMap& node_map, const char* node_name, 
         return false;
     }
 
+    // Get the new value that should be set to the node
     Spinnaker::GenApi::CEnumEntryPtr value = node->GetEntryByName(value_name);
     if(!Spinnaker::GenApi::IsAvailable(value) || !Spinnaker::GenApi::IsReadable(value))
     {
@@ -33,6 +35,7 @@ bool set_node_val(Spinnaker::GenApi::INodeMap& node_map, const char* node_name, 
         return false;
     }
 
+    // Set the value to the node
     node->SetIntValue(value->GetValue());
 
     return true;
@@ -40,6 +43,7 @@ bool set_node_val(Spinnaker::GenApi::INodeMap& node_map, const char* node_name, 
 
 void SpinnakerCamera::connect()
 {
+    // Get available cameras
     Spinnaker::CameraList clist = m_psys->GetCameras();
     spdlog::info("{} cameras found", clist.GetSize());
 
@@ -54,8 +58,10 @@ void SpinnakerCamera::connect()
     catch (Spinnaker::Exception& e)
     {
         spdlog::critical("Error initializing camera: \n{}", e.what());
+        // TODO: Return error. Throw exception? Just return bool?
     }
 
+    // Get camera nodes (settings)
     Spinnaker::GenApi::INodeMap& node_map = m_pcam->GetNodeMap();
 
     // TODO: Check return type and do something if false
@@ -67,6 +73,7 @@ void SpinnakerCamera::connect()
     // TODO: Disable heartbeat in debug? The example does this, but I'm not sure if it's referring to debugging
     //      the hardware in some way or just having the executable compiled in debug mode
 
+    // Start video capture
     m_pcam->BeginAcquisition();
 }
 
