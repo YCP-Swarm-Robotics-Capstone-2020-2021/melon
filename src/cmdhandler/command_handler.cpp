@@ -318,22 +318,28 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         current_state.camera.url = state_to_load.url();
 
         //clear camera_matrix state variable, fill from loaded state
-        current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
+        current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
         std::vector<double> values;
-        for(auto const &value : state_to_load.camera_matrix()){
-            values.push_back(value);
-        };
-        cv::Mat new_camera_matrix (values);
-        current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CAMERA_MATRIX_ROWS).clone();
+        if(!state_to_load.camera_matrix().empty()){
+            for(auto const &value : state_to_load.camera_matrix()){
+                values.push_back(value);
+            };
+            cv::Mat new_camera_matrix (values);
+            current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CAMERA_MATRIX_ROWS).clone();
+        }
+
 
         //clear distortion_state variable, fill from loaded state
-        current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());;
-        values.clear();
-        for(auto const &value : state_to_load.distortion_matrix()){
-            values.push_back(value);
+        current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
+        if(!state_to_load.distortion_matrix().empty()){
+            values.clear();
+            for(auto const &value : state_to_load.distortion_matrix()){
+                values.push_back(value);
+            }
+            cv::Mat new_distortion_matrix (values);
+            current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, DISTORTION_MATRIX_ROWS).clone();
         }
-        cv::Mat new_distortion_matrix (values);
-        current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, DISTORTION_MATRIX_ROWS).clone();
+
 
         //fill marker_dictionary variable from loaded state
         current_state.camera.marker_dictionary = state_to_load.marker_dictionary();
