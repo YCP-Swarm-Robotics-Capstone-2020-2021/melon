@@ -9,4 +9,6 @@ constexpr char SAVE_CMD[] = "save";
 constexpr char LOAD_CMD[] = "load";
 constexpr char HELP_CMD[] = "help";
 
+const std::string TARGET_CMDS[] = {SET_CMD, GET_CMD, DELETE_CMD, LIST_CMD, SAVE_CMD, LOAD_CMD};
+
 #endif //MELON_COMMANDS_H
