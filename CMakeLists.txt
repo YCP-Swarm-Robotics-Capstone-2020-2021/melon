@@ -24,51 +24,31 @@ find_package(spdlog REQUIRED)
 #[[
     Find and configure Spinnaker
 ]]
-# Make sure that SPINNAKER_SDK has been defined
-if(NOT DEFINED SPINNAKER_SDK)
-    message(FATAL_ERROR "Path to Spinnaker SDK was not set. Set with -DSPINNAKER_SDK=<path>, i.e. -DSPINNAKER_SDK=C:\\Dev\\SpinnakerSdk\\\"")
+if(NOT DEFINED SPINNAKER_INCLUDE_DIR)
+    message(FATAL_ERROR "Path to Spinnaker include directory was not set. This directory should contain the Spinnaker SDK Header files. "
+                        "Set with -DSPINNAKER_INCLUDE_DIR=<path>, i.e. -DSPINNAKER_INCLUDE_DIR=C:\\Dev\\SpinnakerSdk\\include\\\"")
 endif()
+include_directories(${SPINNAKER_INCLUDE_DIR})
 
-# Make sure that an include subdirectory with the header files exists
-if(NOT EXISTS ${SPINNAKER_SDK}/include)
-    message(FATAL_ERROR "Given Spinnaker SDK path of '${SPINNAKER_SDK}' does not contain an 'include/' subdirectory")
+if(NOT DEFINED SPINNAKER_LIB_DIR)
+    message(FATAL_ERROR "Path to Spinnaker lib directory was not set. This directory should contain the Spinnaker SDK lib files. "
+            "Set with -DSPINNAKER_LIB=<path>, i.e. -DSPINNAKER_LIB=C:\\Dev\\SpinnakerSdk\\lib\\\"")
 endif()
-include_directories(${SPINNAKER_SDK}/include)
-
-###
-### NOTE: Checking for the SDK libraries like this is extremely susceptible to breaking, especially if a new version is released
-### TODO: More flexible and future-proof way of doing this
-###
-set(SPINNAKER_LINK_DIR ${SPINNAKER_SDK})
-# If lib64 subdirectory exists and system is 64 bit
-if((EXISTS ${SPINNAKER_SDK}/lib64) AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
-    set(SPINNAKER_LINK_DIR ${SPINNAKER_LINK_DIR}/lib64)
-# Otherwise, if lib subdirectory exists
-elseif(EXISTS ${SPINNAKER_SDK}/lib)
-    set(SPINNAKER_LINK_DIR ${SPINNAKER_LINK_DIR}/lib)
-# Otherwise, required libraries to link can't be found
-else()
-    message(FATAL_ERROR "Given Spinnaker SDK path of '${SPINNAKER_SDK}' does not contain a 'lib/' or 'lib64/' subdirectory")
-endif()
-
-# Windows SDK has a vs2015 subdirectory, so check for it
-if(EXISTS ${SPINNAKER_LINK_DIR}/vs2015)
-    set(SPINNAKER_LINK_DIR ${SPINNAKER_LINK_DIR}/vs2015)
-endif()
-# Add the link directory
-link_directories(${SPINNAKER_LINK_DIR})
+link_directories(${SPINNAKER_LIB_DIR})
 
 # If compiling in debug mode and the debug version of the windows library exists, use it
-if(DEBUG AND EXISTS ${SPINNAKER_LINK_DIR}/Spinnakerd_v140.lib)
+if(DEBUG AND EXISTS ${SPINNAKER_LIB_DIR}/Spinnakerd_v140.lib)
     set(SPINNAKER_LIBRARIES Spinnakerd_v140)
 # Otherwise, if the release version of the windows library exists, use it
-elseif(EXISTS ${SPINNAKER_LINK_DIR}/Spinnaker_v140.lib)
+elseif(EXISTS ${SPINNAKER_LIB_DIR}/Spinnaker_v140.lib)
     set(SPINNAKER_LIBRARIES Spinnaker_v140)
 else()
     # Check if the expected Unix library exists, and emit a warning if not
-    if(NOT EXISTS ${SPINNAKER_LINK_DIR}/libSpinnaker.so)
-        message(WARNING "Expected library files were not found in ${SPINNAKER_LINK_DIR} -- 'Spinnaker' is being used "
-                        "as a default last attempt, but compilation will likely fail")
+    if(NOT EXISTS ${SPINNAKER_LIB_DIR}/libSpinnaker.so)
+        message(WARNING "Expected library files were not found in ${SPINNAKER_LIB_DIR} -- 'Spinnaker' is being used "
+                        "as a default last attempt, but compilation will likely fail. If compiling for MSVC, make sure "
+                        "that your SPINNAKER_LIB_DIR doesn't have additional sub-directories between your given directory "
+                        "and any *.lib files")
     endif()
 
     set(SPINNAKER_LIBRARIES Spinnaker)
