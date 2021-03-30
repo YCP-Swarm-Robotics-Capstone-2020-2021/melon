@@ -4,49 +4,88 @@ project(melon)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -DASIO_STANDALONE")
 
+#[[
+    Find OpenCV
+]]
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+#[[
+    Find Google Protobuf
+]]
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
+#[[
+    Find spdlog
+]]
 find_package(spdlog REQUIRED)
 
-if(NOT DEFINED SPINNAKER_SDK)
-    message(FATAL_ERROR "Path to Spinnaker SDK was not set. Set with -DSPINNAKER_SDK=<path>, i.e. -DSPINNAKER_SDK=C:\\Dev\\SpinnakerSdk\\\"")
+#[[
+    Find and configure Spinnaker
+]]
+if(NOT DEFINED SPINNAKER_INCLUDE_DIR)
+    message(FATAL_ERROR "Path to Spinnaker include directory was not set. This directory should contain the Spinnaker SDK Header files. "
+                        "Set with -DSPINNAKER_INCLUDE_DIR=<path>, i.e. -DSPINNAKER_INCLUDE_DIR=C:\\Dev\\SpinnakerSdk\\include\\\"")
 endif()
+include_directories(${SPINNAKER_INCLUDE_DIR})
 
-include_directories(${SPINNAKER_SDK}/include)
-# Use "lib64/" directory if 64 bit target, otherwise use "lib/"
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${SPINNAKER_SDK}/lib64/vs2015)
-else()
-    link_directories(${SPINNAKER_SDK}/lib/vs2015)
+if(NOT DEFINED SPINNAKER_LIB_DIR)
+    message(FATAL_ERROR "Path to Spinnaker lib directory was not set. This directory should contain the Spinnaker SDK lib files. "
+            "Set with -DSPINNAKER_LIB=<path>, i.e. -DSPINNAKER_LIB=C:\\Dev\\SpinnakerSdk\\lib\\\"")
 endif()
-if(DEBUG)
+link_directories(${SPINNAKER_LIB_DIR})
+
+# If compiling in debug mode and the debug version of the windows library exists, use it
+if(DEBUG AND EXISTS ${SPINNAKER_LIB_DIR}/Spinnakerd_v140.lib)
     set(SPINNAKER_LIBRARIES Spinnakerd_v140)
-else()
+# Otherwise, if the release version of the windows library exists, use it
+elseif(EXISTS ${SPINNAKER_LIB_DIR}/Spinnaker_v140.lib)
     set(SPINNAKER_LIBRARIES Spinnaker_v140)
+else()
+    # Check if the expected Unix library exists, and emit a warning if not
+    if(NOT EXISTS ${SPINNAKER_LIB_DIR}/libSpinnaker.so)
+        message(WARNING "Expected library files were not found in ${SPINNAKER_LIB_DIR} -- 'Spinnaker' is being used "
+                        "as a default last attempt, but compilation will likely fail. If compiling for MSVC, make sure "
+                        "that your SPINNAKER_LIB_DIR doesn't have additional sub-directories between your given directory "
+                        "and any *.lib files")
+    endif()
+
+    set(SPINNAKER_LIBRARIES Spinnaker)
 endif()
 
+#[[
+    Compile protobuf messages
+]]
 file(GLOB_RECURSE PROTOS
         "${CMAKE_SOURCE_DIR}/*.proto"
         )
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOS})
 
+#[[
+    Gather all source files
+]]
 file(GLOB_RECURSE SRC
         "${CMAKE_SOURCE_DIR}/src/*.cpp"
         "${CMAKE_SOURCE_DIR}/src/*.h"
         "${CMAKE_SOURCE_DIR}/src/*.pb.*"
         )
 
+#[[
+    Configure compilation target
+]]
+# Add the compile directory to the include directories so that the generated protobuf classes can be found
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+# Add compilation target
 add_executable(melon ${PROTO_SRCS} ${PROTO_HDRS} ${SRC})
+# Link libraries to compilation target
 target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog ${SPINNAKER_LIBRARIES})
+# If MSVC compiler is not being used, add stdc++fs library
 if(NOT MSVC)
     target_link_libraries(melon stdc++fs)
 endif()
 
+# If on windows, add a special compiler definition for Asio and include Windows socket libraries for Asio
 if(WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
     target_link_libraries(melon ws2_32 wsock32)
