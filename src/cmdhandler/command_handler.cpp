@@ -25,11 +25,7 @@
 #include <sstream>
 
 //these commands require a target system to be given alongside them
-std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
-
-const std::string SAVE_STATE_DIR = "states/";
-const int CAMERA_MATRIX_ROWS = 3;
-const int DISTORTION_MATRIX_ROWS = 5;
+const std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
 
 /**
  * Do a command by calling a specific target system depending on user command string.
@@ -216,9 +212,9 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
  * @return response to user command as string
  */
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
-    if(!std::filesystem::exists(SAVE_STATE_DIR)){
+    if(!std::filesystem::exists(StateSystemVars::SAVE_DIR)){
         std::error_code ec;
-        if(!std::filesystem::create_directory(SAVE_STATE_DIR, ec)){
+        if(!std::filesystem::create_directory(StateSystemVars::SAVE_DIR, ec)){
             spdlog::error(ec.message());
             return "Error creating save state directory";
         }
@@ -232,7 +228,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string save_name = tokens[2];
 
         //don't allow save_name to be 'current' as that is a keyword that is used in this target sys.
-        if(save_name == "current"){
+        if(save_name == StateSystemVars::CURRENT_KEYWORD){
             return "state name '"+save_name+"' cannot be used";
         }
 
@@ -278,7 +274,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_camera_system()->mutable_options())[option.first] = option.second;
         }
 
-        std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+        std::fstream output(StateSystemVars::SAVE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
@@ -290,7 +286,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string load_name = tokens[2];
 
         State state_to_load;
-        std::fstream input(SAVE_STATE_DIR+load_name, std::ios::in | std::ios::binary);
+        std::fstream input(StateSystemVars::SAVE_DIR+load_name, std::ios::in | std::ios::binary);
 
         //check if the given state file even exists, if exists parse in using protobuf
         if(!input.is_open()){
@@ -328,7 +324,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
                 values.push_back(value);
             };
             cv::Mat new_camera_matrix (values);
-            current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CAMERA_MATRIX_ROWS).clone();
+            current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CameraSystemVars::CAMERA_MATRIX_ROWS).clone();
         }
 
 
@@ -339,7 +335,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
                 values.push_back(value);
             }
             cv::Mat new_distortion_matrix (values);
-            current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, DISTORTION_MATRIX_ROWS).clone();
+            current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, CameraSystemVars::DISTORTION_MATRIX_ROWS).clone();
         }
 
         //fill marker_dictionary variable from loaded state
@@ -361,11 +357,11 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //if value is 'current', clear out current state
         //if not, attempt to delete given save state's file
-        if(state_to_delete == "current"){
+        if(state_to_delete == StateSystemVars::CURRENT_KEYWORD){
             current_state = StateVariables();
             return "current state has been cleared";
         }else{
-            if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
+            if(std::filesystem::remove((StateSystemVars::SAVE_DIR+state_to_delete).c_str())){
                 return "state '"+state_to_delete+"' has been removed";
             }else{
                 return "saved state '"+state_to_delete+"' does not exist";
@@ -375,7 +371,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string response = "Saved states:";
 
         //get file names in the 'states' directory
-        for (const auto & entry : std::filesystem::directory_iterator(SAVE_STATE_DIR)){
+        for (const auto & entry : std::filesystem::directory_iterator(StateSystemVars::SAVE_DIR)){
             std::string filename_string = entry.path().string();
             response += "\n    "+filename_string.substr(filename_string.find_last_of("/") + 1);
         }
@@ -536,7 +532,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 }
 
                 try{
-                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, CAMERA_MATRIX_ROWS);
+                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, CameraSystemVars::CAMERA_MATRIX_ROWS);
                     return "'"+variable+"' variable set with values "+tokens[3];
                 }catch(const std::invalid_argument& err){
                     spdlog::error(err.what());
@@ -548,7 +544,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 }
 
                 try{
-                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, DISTORTION_MATRIX_ROWS);
+                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, CameraSystemVars::DISTORTION_MATRIX_ROWS);
                     return "'"+variable+"' variable set with values "+tokens[3];
                 }catch(const std::invalid_argument& err){
                     spdlog::error(err.what());
