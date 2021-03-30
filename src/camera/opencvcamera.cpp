@@ -1,6 +1,6 @@
 #include "opencvcamera.h"
 
-OpenCvCamera::OpenCvCamera(StateVariables& state) : Camera(state)
+OpenCvCamera::OpenCvCamera(StateVariables& state) : AbstractCamera(state)
 {
 }
 

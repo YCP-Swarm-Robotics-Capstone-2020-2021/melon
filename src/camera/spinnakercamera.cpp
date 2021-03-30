@@ -3,9 +3,9 @@
 #include <spdlog/spdlog.h>
 
 SpinnakerCamera::SpinnakerCamera(StateVariables& state) :
-    Camera(state),
-    m_psys(Spinnaker::System::GetInstance()),
-    m_pcam(nullptr)
+        AbstractCamera(state),
+        m_psys(Spinnaker::System::GetInstance()),
+        m_pcam(nullptr)
 {
 }
 

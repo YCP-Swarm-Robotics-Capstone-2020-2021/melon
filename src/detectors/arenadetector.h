@@ -8,7 +8,7 @@
 class ArenaDetector
 {
 public:
-    static std::array<Marker, 4> detect(Camera& camera, StateVariables& state);
+    static std::array<Marker, 4> detect(AbstractCamera& camera, StateVariables& state);
 };
 
 

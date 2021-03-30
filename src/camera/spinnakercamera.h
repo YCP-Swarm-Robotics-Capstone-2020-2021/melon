@@ -4,16 +4,16 @@
 #include "camera.h"
 #include <Spinnaker.h>
 
-class SpinnakerCamera : public Camera
+class SpinnakerCamera : public AbstractCamera
 {
 public:
     explicit SpinnakerCamera(StateVariables& state);
     ~SpinnakerCamera();
+
     bool disconnect() override;
     bool connect() override;
 
     bool get_frame(cv::Mat &frame) override;
-
 private:
     Spinnaker::SystemPtr m_psys;
     Spinnaker::CameraPtr m_pcam;

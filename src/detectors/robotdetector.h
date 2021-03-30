@@ -9,7 +9,7 @@
 class RobotDetector
 {
 public:
-    static std::vector<RobotData> detect(Camera& camera, StateVariables& state);
+    static std::vector<RobotData> detect(AbstractCamera& camera, StateVariables& state);
 };
 
 

@@ -90,7 +90,8 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
     // TODO: Connect to camera
     // TODO: Dynamically use different camera types
-    std::unique_ptr<Camera> camera = std::make_unique<SpinnakerCamera>(local_variables);
+    //std::unique_ptr<AbstractCamera> camera = std::make_unique<SpinnakerCamera>(local_variables);
+    Camera camera = AbstractCamera::GetCamera(local_variables);
     if(!camera->connect())
     {
         spdlog::critical("Camera connection failed");

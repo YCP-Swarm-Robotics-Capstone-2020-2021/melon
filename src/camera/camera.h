@@ -3,14 +3,21 @@
 
 #include <vector>
 #include <opencv2/core/mat.hpp>
+#include <memory>
 
 #include "../cmdhandler/statevariables.h"
 #include "cameracalib.h"
 
-class Camera : public UpdateableState
+class AbstractCamera;
+using Camera = std::unique_ptr<AbstractCamera>;
+
+class AbstractCamera : public UpdateableState
 {
 public:
-    virtual ~Camera() { }
+    // Returns nullptr if camera type is invalid
+    static Camera GetCamera(StateVariables& state);
+
+    virtual ~AbstractCamera() { }
 
     // Establish a connection to the camera
     // Return true if connection successful, false if connection was not successful
@@ -37,7 +44,7 @@ public:
     void update_state(StateVariables& state) override;
 
 protected:
-    explicit Camera(StateVariables& state);
+    explicit AbstractCamera(StateVariables& state);
 
 private:
     bool m_video_output {false};

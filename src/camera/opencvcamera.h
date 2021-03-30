@@ -4,10 +4,11 @@
 #include <opencv2/videoio.hpp>
 #include "camera.h"
 /// A camera compatible with OpenCV's "VideoCapture" class
-class OpenCvCamera : public Camera
+class OpenCvCamera : public AbstractCamera
 {
 public:
     explicit OpenCvCamera(StateVariables& state);
+
     bool connect() override;
     bool disconnect() override;
 
