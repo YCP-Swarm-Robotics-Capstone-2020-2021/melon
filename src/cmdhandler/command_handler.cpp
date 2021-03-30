@@ -19,6 +19,7 @@
  *      No return responses should have any new line characters at the start/end.
  */
 #include "command_handler.h"
+#include "constants/commands.h"
 #include <sstream>
 
 //these commands require a target system to be given alongside them
@@ -135,7 +136,7 @@ std::string command_handler::build_matrix_string(const cv::Mat& matrix){
  * @return response to user command as string
  */
 std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
-    if(tokens[0] == "list"){
+    if(tokens[0] == LIST_CMD){
         std::string response = "Current robots:";
         for(auto const& robot : current_state.robot.robots){
             response += "\n    "+robot.first+": ";
@@ -145,7 +146,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
             response.pop_back(); // remove hanging ,
         }
         return response;
-    }else if(tokens[0] == "set"){
+    }else if(tokens[0] == SET_CMD){
         if(tokens.size() != 4){
             return "please provide a robot name and marker ids separated by commas\n    ex: set robot robot_1 1,2,3,4";
         }
@@ -166,7 +167,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
 
         current_state.robot.robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
         return robot_id+" added with marker values "+tokens[3];
-    }else if(tokens[0] == "get"){
+    }else if(tokens[0] == GET_CMD){
         if(tokens.size() != 3){
             return "please provide a robot to get\n    ex: get robot robot_1";
         }
@@ -184,7 +185,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
             response.pop_back(); // remove hanging ,
             return response;
         }
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() != 3){
             return "please provide a robot to delete\n    ex: delete robot robot_1";
         }
@@ -221,7 +222,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         }
     }
 
-    if(tokens[0] == "save"){
+    if(tokens[0] == SAVE_CMD){
         if(tokens.size() != 3){
             return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
         }
@@ -279,7 +280,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
-    }else if(tokens[0] == "load"){
+    }else if(tokens[0] == LOAD_CMD){
         if(tokens.size() != 3){
             return "please provide a saved state name to load\n    ex: load state config1";
         }
@@ -352,7 +353,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         input.close();
         return "current state loaded from '"+load_name+"'";
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() != 3){
             return "please provide a saved state to delete\n    ex: delete state config1";
         }
@@ -377,7 +378,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
                 return "saved state '"+state_to_delete+"' does not exist";
             }
         }
-    }else if(tokens[0] == "list"){
+    }else if(tokens[0] == LIST_CMD){
         std::string response = "Saved states:";
 
         //get file names in the 'states' directory
@@ -402,7 +403,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
  * @return response to user command as string
  */
 std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
-    if(tokens[0] == "list"){
+    if(tokens[0] == LIST_CMD){
         std::stringstream response;
         response << "Current collectors:";
 
@@ -411,7 +412,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
         }
 
         return response.str();
-    }else if(tokens[0] == "set"){
+    }else if(tokens[0] == SET_CMD){
         if(tokens.size() != 5){
             return "please provide a collector name, ip, and port\n    ex: set collector gcs 127.0.0.1 53";
         }
@@ -441,7 +442,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
 
         current_state.collector.collectors.insert(std::pair(collector_id, endpoint));
         return collector_id+" added with ip "+tokens[3]+":"+tokens[4];
-    }else if(tokens[0] == "get"){
+    }else if(tokens[0] == GET_CMD){
         if(tokens.size() != 3){
             return "please provide a collector to get\n    ex: get collector gcs";
         }
@@ -456,7 +457,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
             response << collector_to_get << ": " << index->second;
             return response.str();
         }
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() != 3){
             return "please provide a collector to delete\n    ex: delete collector gcs";
         }
@@ -486,7 +487,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
  * @return response to user command as string
  */
 std::string command_handler::camera_system(const std::vector<std::string>& tokens, StateVariables& current_state){
-    if(tokens[0] == "list"){
+    if(tokens[0] == LIST_CMD){
         std::stringstream response;
         response << "Current camera variables:";
 
@@ -514,7 +515,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         return response.str();
-    }else if(tokens[0] == "set"){
+    }else if(tokens[0] == SET_CMD){
         if(tokens.size() < 3){
             return "please provide a variable to set\n    ex: set camera url http://example.com";
         }
@@ -593,7 +594,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         return "variable '"+variable+"' does not exist";
-    }else if(tokens[0] == "get"){
+    }else if(tokens[0] == GET_CMD){
         if(tokens.size() < 3){
             return "please provide a variable to get\n    ex: get camera url";
         }
@@ -630,7 +631,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         return "variable '"+variable+"' does not exist";
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() < 3){
             return "please provide a variable to delete\n    ex: delete camera url";
         }
