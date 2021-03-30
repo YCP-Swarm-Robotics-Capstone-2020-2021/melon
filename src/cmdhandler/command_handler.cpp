@@ -517,7 +517,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
             current_state.camera.url = tokens[3];
             return "camera url set to '"+tokens[3]+"'";
-        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_COEFFS){
+        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX){
             // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
             // cv::Mat to the chosen variable
             if(tokens.size() != 4){
@@ -592,7 +592,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         if(variable == CameraSystemVars::URL){
             return "url: "+current_state.camera.url;
-        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_COEFFS) {
+        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX) {
             std::stringstream response;
             response << variable << ": ";
 
@@ -631,7 +631,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             current_state.camera.url = "";
         }else if(variable == CameraSystemVars::CAM_MATRIX){
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
-        }else if(variable == CameraSystemVars::DIST_COEFFS){
+        }else if(variable == CameraSystemVars::DIST_MATRIX){
             current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());;
         }else if(variable == CameraSystemVars::MARKER_DICT){
             current_state.camera.marker_dictionary = 0;
