@@ -21,6 +21,7 @@
 #include "command_handler.h"
 #include "constants/commands.h"
 #include "constants/systems.h"
+#include "constants/variables.h"
 #include <sstream>
 
 //these commands require a target system to be given alongside them
@@ -514,13 +515,13 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == CameraSystemVars::URL){
             if(tokens.size() != 4){
                 return "please provide a value for variable '"+variable+"'\n    ex: set camera url http://example.com";
             }
             current_state.camera.url = tokens[3];
             return "camera url set to '"+tokens[3]+"'";
-        }else if(variable == "camera_matrix" || variable == "distortion_matrix"){
+        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_COEFFS){
             // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
             // cv::Mat to the chosen variable
             if(tokens.size() != 4){
@@ -529,7 +530,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
             std::vector<std::string> values = tokenize_values_by_commas(tokens[3]);
 
-            if(variable == "camera_matrix"){
+            if(variable == CameraSystemVars::CAM_MATRIX){
                 if(values.size() != 9){
                     return "please provide a comma separated list of 9 doubles, "+std::to_string(values.size())+" given";
                 }
@@ -554,7 +555,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                     return "please provide a comma separated list of doubles";
                 }
             }
-        }else if(variable == "marker_dictionary"){
+        }else if(variable == CameraSystemVars::MARKER_DICT){
             if(tokens.size() != 4){
                 return "please provide an integer for variable '"+variable+"'\n    ex: set camera "+variable+" 6";
             }
@@ -567,7 +568,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
 
             return "'"+variable+"' variable set with value "+tokens[3];
-        }else if(variable == "camera_options"){
+        }else if(variable == CameraSystemVars::OPTIONS){
             if(tokens.size() != 5){
                 return "please provide a name and boolean value for '"+variable+"'\n    ex: set camera "+variable+" stream true";
             }
@@ -593,25 +594,25 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == CameraSystemVars::URL){
             return "url: "+current_state.camera.url;
-        }else if(variable == "camera_matrix" || variable == "distortion_matrix") {
+        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_COEFFS) {
             std::stringstream response;
             response << variable << ": ";
 
             cv::Mat matrix_to_get;
-            if(variable == "camera_matrix"){
+            if(variable == CameraSystemVars::CAM_MATRIX){
                 matrix_to_get = current_state.camera.camera_matrix;
-            }else if(variable == "distortion_matrix"){
+            }else{
                 matrix_to_get = current_state.camera.distortion_matrix;
             }
 
             response << build_matrix_string(matrix_to_get);
 
             return response.str();
-        }else if(variable == "marker_dictionary"){
+        }else if(variable == CameraSystemVars::MARKER_DICT){
             return "marker_dictionary: "+std::to_string(current_state.camera.marker_dictionary);
-        }else if(variable == "camera_options"){
+        }else if(variable == CameraSystemVars::OPTIONS){
             std::stringstream response;
             response << variable << ": ";
 
@@ -630,15 +631,15 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == CameraSystemVars::URL){
             current_state.camera.url = "";
-        }else if(variable == "camera_matrix"){
+        }else if(variable == CameraSystemVars::CAM_MATRIX){
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
-        }else if(variable == "distortion_matrix"){
+        }else if(variable == CameraSystemVars::DIST_COEFFS){
             current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());;
-        }else if(variable == "marker_dictionary"){
+        }else if(variable == CameraSystemVars::MARKER_DICT){
             current_state.camera.marker_dictionary = 0;
-        }else if(variable == "camera_options"){
+        }else if(variable == CameraSystemVars::OPTIONS){
             current_state.camera.camera_options.clear();
         }else{
            return "variable '"+variable+"' does not exist";
