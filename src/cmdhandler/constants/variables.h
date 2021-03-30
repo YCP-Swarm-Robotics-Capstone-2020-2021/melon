@@ -8,6 +8,15 @@ namespace CameraSystemVars
     constexpr char DIST_COEFFS[] = "distortion_matrix";
     constexpr char MARKER_DICT[] = "marker_dictionary";
     constexpr char OPTIONS[] = "camera_options";
+
+    constexpr int CAMERA_MATRIX_ROWS = 3;
+    constexpr int DISTORTION_MATRIX_ROWS = 5;
+}
+
+namespace StateSystemVars
+{
+    constexpr char SAVE_DIR[] = "states/";
+    constexpr char CURRENT_KEYWORD[] = "current";
 }
 
 
