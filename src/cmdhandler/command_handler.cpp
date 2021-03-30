@@ -24,9 +24,6 @@
 #include "constants/variables.h"
 #include <sstream>
 
-//these commands require a target system to be given alongside them
-const std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
-
 /**
  * Do a command by calling a specific target system depending on user command string.
  *
@@ -38,7 +35,7 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
     std::string command = tokens[0];
 
     //check if command requires a target system
-    if(std::find(std::begin(target_commands), std::end(target_commands), command) != std::end(target_commands)){
+    if(std::find(std::begin(TARGET_CMDS), std::end(TARGET_CMDS), command) != std::end(TARGET_CMDS)){
 
         //if target system not provided, return
         if(tokens.size() < 2){
