@@ -7,5 +7,6 @@ constexpr char DELETE_CMD[] = "delete";
 constexpr char LIST_CMD[] = "list";
 constexpr char SAVE_CMD[] = "save";
 constexpr char LOAD_CMD[] = "load";
+constexpr char HELP_CMD[] = "help";
 
 #endif //MELON_COMMANDS_H

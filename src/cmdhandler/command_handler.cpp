@@ -20,6 +20,7 @@
  */
 #include "command_handler.h"
 #include "constants/commands.h"
+#include "constants/systems.h"
 #include <sstream>
 
 //these commands require a target system to be given alongside them
@@ -50,18 +51,18 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
         std::string target_system = tokens[1];
 
         //call corresponding target system func
-        if(target_system == "robot"){
+        if(target_system == ROBOT_SYS_CMD){
             return robot_system(tokens, current_state);
-        }else if(target_system == "state"){
+        }else if(target_system == STATE_SYS_CMD){
             return state_system(tokens, current_state);
-        }else if(target_system == "collector"){
+        }else if(target_system == COLLECTOR_SYS_CMD){
             return collector_system(tokens, current_state);
-        }else if(target_system == "camera"){
+        }else if(target_system == CAMERA_SYS_CMD){
             return camera_system(tokens, current_state);
         }else{
             return "target system: '"+target_system+"' not found";
         }
-    }else if(command == "help"){
+    }else if(command == HELP_CMD){
         return help_command();
     }else{
         return "command: '"+command+"' not found";
@@ -296,8 +297,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         }
         state_to_load.ParseFromIstream(&input);
 
-        //clear robots state variable, fill from loaded State instance above
-        current_state.robot.robots.clear();
+        //clear current state
+        current_state = StateVariables();
+
+        //robots state variable, fill from loaded State instance above
         for(auto const &robot : state_to_load.robot_system().robots()){
             std::vector<int> marker_ids_to_save;
             for(auto const &marker_id : robot.second.ids()){
@@ -306,8 +309,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.robot.robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
         }
 
-        //clear collector state variable, fill from loaded State
-        current_state.collector.collectors.clear();
+        //collector state variable, fill from loaded State
         for(auto const &collector : state_to_load.collector_system().collectors()){
             auto endpoint = asio::ip::udp::endpoint(
                     asio::ip::make_address(collector.second.address()),
@@ -318,8 +320,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //fill url variable from loaded state
         current_state.camera.url = state_to_load.camera_system().url();
 
-        //clear camera_matrix state variable, fill from loaded state
-        current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
+        //camera_matrix state variable, fill from loaded state
         std::vector<double> values;
         if(!state_to_load.camera_system().camera_matrix().empty()){
             for(auto const &value : state_to_load.camera_system().camera_matrix()){
@@ -330,8 +331,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         }
 
 
-        //clear distortion_state variable, fill from loaded state
-        current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
+        //distortion_state variable, fill from loaded state
         if(!state_to_load.camera_system().distortion_matrix().empty()){
             values.clear();
             for(auto const &value : state_to_load.camera_system().distortion_matrix()){
@@ -341,12 +341,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, DISTORTION_MATRIX_ROWS).clone();
         }
 
-
         //fill marker_dictionary variable from loaded state
         current_state.camera.marker_dictionary = state_to_load.camera_system().marker_dictionary();
 
-        //fill camera_options map from loaded state
-        current_state.camera.camera_options.clear();
+        //camera_options map from loaded state
         for(auto const &option : state_to_load.camera_system().options()){
             current_state.camera.camera_options.insert(std::pair<std::string, bool>(option.first, option.second));
         }
@@ -363,13 +361,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //if value is 'current', clear out current state
         //if not, attempt to delete given save state's file
         if(state_to_delete == "current"){
-            current_state.robot.robots.clear();
-            current_state.collector.collectors.clear();
-            current_state.camera.url.clear();
-            current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
-            current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
-            current_state.camera.marker_dictionary = 0;
-            current_state.camera.camera_options.clear();
+            current_state = StateVariables();
             return "current state has been cleared";
         }else{
             if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
