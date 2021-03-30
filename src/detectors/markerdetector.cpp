@@ -29,12 +29,13 @@ std::vector<Marker> MarkerDetector::detect(cv::Mat& frame, bool draw)
     std::vector<Marker> markers(ids.size());
     for(int i = 0; i < ids.size(); ++i)
     {
-        markers.push_back({
-            .id = ids[i],
-            .corners = corners[i],
-            .rvec = rvecs[i],
-            .tvec = tvecs[i],
-        });
+        Marker m;
+        m.id = ids[i];
+        m.corners = corners[i];
+        m.rvec = rvecs[i];
+        m.tvec = tvecs[i];
+
+        markers.push_back(m);
     }
 
     return markers;

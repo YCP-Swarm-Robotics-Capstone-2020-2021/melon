@@ -4,15 +4,17 @@ OpenCvCamera::OpenCvCamera(StateVariables& state) : Camera(state)
 {
 }
 
-void OpenCvCamera::connect()
+bool OpenCvCamera::connect()
 {
     std::string url = ""; //TODO: Get camera url from variables
-    m_video_feed.open(url);
+    return m_video_feed.open(url);
 }
 
-void OpenCvCamera::disconnect()
+bool OpenCvCamera::disconnect()
 {
     m_video_feed.release();
+    // OpenCV video feed doesn't return any success/error messages on disconnect, so just return true
+    return true;
 }
 
 bool OpenCvCamera::get_frame(cv::Mat& frame)
