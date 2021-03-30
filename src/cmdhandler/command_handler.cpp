@@ -19,14 +19,10 @@
  *      No return responses should have any new line characters at the start/end.
  */
 #include "command_handler.h"
+#include "constants/commands.h"
+#include "constants/systems.h"
+#include "constants/variables.h"
 #include <sstream>
-
-//these commands require a target system to be given alongside them
-std::string target_commands[] = {"set", "get", "delete", "list", "save", "load"};
-
-const std::string SAVE_STATE_DIR = "states/";
-const int CAMERA_MATRIX_ROWS = 3;
-const int DISTORTION_MATRIX_ROWS = 5;
 
 /**
  * Do a command by calling a specific target system depending on user command string.
@@ -39,7 +35,7 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
     std::string command = tokens[0];
 
     //check if command requires a target system
-    if(std::find(std::begin(target_commands), std::end(target_commands), command) != std::end(target_commands)){
+    if(std::find(std::begin(TARGET_CMDS), std::end(TARGET_CMDS), command) != std::end(TARGET_CMDS)){
 
         //if target system not provided, return
         if(tokens.size() < 2){
@@ -49,18 +45,18 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
         std::string target_system = tokens[1];
 
         //call corresponding target system func
-        if(target_system == "robot"){
+        if(target_system == ROBOT_SYS_CMD){
             return robot_system(tokens, current_state);
-        }else if(target_system == "state"){
+        }else if(target_system == STATE_SYS_CMD){
             return state_system(tokens, current_state);
-        }else if(target_system == "collector"){
+        }else if(target_system == COLLECTOR_SYS_CMD){
             return collector_system(tokens, current_state);
-        }else if(target_system == "camera"){
+        }else if(target_system == CAMERA_SYS_CMD){
             return camera_system(tokens, current_state);
         }else{
             return "target system: '"+target_system+"' not found";
         }
-    }else if(command == "help"){
+    }else if(command == HELP_CMD){
         return help_command();
     }else{
         return "command: '"+command+"' not found";
@@ -135,7 +131,7 @@ std::string command_handler::build_matrix_string(const cv::Mat& matrix){
  * @return response to user command as string
  */
 std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
-    if(tokens[0] == "list"){
+    if(tokens[0] == LIST_CMD){
         std::string response = "Current robots:";
         for(auto const& robot : current_state.robot.robots){
             response += "\n    "+robot.first+": ";
@@ -145,7 +141,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
             response.pop_back(); // remove hanging ,
         }
         return response;
-    }else if(tokens[0] == "set"){
+    }else if(tokens[0] == SET_CMD){
         if(tokens.size() != 4){
             return "please provide a robot name and marker ids separated by commas\n    ex: set robot robot_1 1,2,3,4";
         }
@@ -166,7 +162,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
 
         current_state.robot.robots.insert(std::pair<std::string, std::vector<int>>(robot_id, values_as_int));
         return robot_id+" added with marker values "+tokens[3];
-    }else if(tokens[0] == "get"){
+    }else if(tokens[0] == GET_CMD){
         if(tokens.size() != 3){
             return "please provide a robot to get\n    ex: get robot robot_1";
         }
@@ -184,7 +180,7 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
             response.pop_back(); // remove hanging ,
             return response;
         }
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() != 3){
             return "please provide a robot to delete\n    ex: delete robot robot_1";
         }
@@ -213,15 +209,15 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
  * @return response to user command as string
  */
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
-    if(!std::filesystem::exists(SAVE_STATE_DIR)){
+    if(!std::filesystem::exists(StateSystemVars::SAVE_DIR)){
         std::error_code ec;
-        if(!std::filesystem::create_directory(SAVE_STATE_DIR, ec)){
+        if(!std::filesystem::create_directory(StateSystemVars::SAVE_DIR, ec)){
             spdlog::error(ec.message());
             return "Error creating save state directory";
         }
     }
 
-    if(tokens[0] == "save"){
+    if(tokens[0] == SAVE_CMD){
         if(tokens.size() != 3){
             return "please provide a name to save the current state as, or existing save to overwrite\n    ex: save state config1";
         }
@@ -229,7 +225,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string save_name = tokens[2];
 
         //don't allow save_name to be 'current' as that is a keyword that is used in this target sys.
-        if(save_name == "current"){
+        if(save_name == StateSystemVars::CURRENT_KEYWORD){
             return "state name '"+save_name+"' cannot be used";
         }
 
@@ -275,11 +271,11 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_camera_system()->mutable_options())[option.first] = option.second;
         }
 
-        std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
+        std::fstream output(StateSystemVars::SAVE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
         return "current state saved as '"+save_name+"'";
-    }else if(tokens[0] == "load"){
+    }else if(tokens[0] == LOAD_CMD){
         if(tokens.size() != 3){
             return "please provide a saved state name to load\n    ex: load state config1";
         }
@@ -287,7 +283,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         std::string load_name = tokens[2];
 
         State state_to_load;
-        std::fstream input(SAVE_STATE_DIR+load_name, std::ios::in | std::ios::binary);
+        std::fstream input(StateSystemVars::SAVE_DIR+load_name, std::ios::in | std::ios::binary);
 
         //check if the given state file even exists, if exists parse in using protobuf
         if(!input.is_open()){
@@ -295,8 +291,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         }
         state_to_load.ParseFromIstream(&input);
 
-        //clear robots state variable, fill from loaded State instance above
-        current_state.robot.robots.clear();
+        //clear current state
+        current_state = StateVariables();
+
+        //robots state variable, fill from loaded State instance above
         for(auto const &robot : state_to_load.robot_system().robots()){
             std::vector<int> marker_ids_to_save;
             for(auto const &marker_id : robot.second.ids()){
@@ -305,8 +303,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.robot.robots.insert(std::pair<std::string, std::vector<int>>(robot.first, marker_ids_to_save));
         }
 
-        //clear collector state variable, fill from loaded State
-        current_state.collector.collectors.clear();
+        //collector state variable, fill from loaded State
         for(auto const &collector : state_to_load.collector_system().collectors()){
             auto endpoint = asio::ip::udp::endpoint(
                     asio::ip::make_address(collector.second.address()),
@@ -317,42 +314,38 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //fill url variable from loaded state
         current_state.camera.url = state_to_load.camera_system().url();
 
-        //clear camera_matrix state variable, fill from loaded state
-        current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
+        //camera_matrix state variable, fill from loaded state
         std::vector<double> values;
         if(!state_to_load.camera_system().camera_matrix().empty()){
             for(auto const &value : state_to_load.camera_system().camera_matrix()){
                 values.push_back(value);
             };
             cv::Mat new_camera_matrix (values);
-            current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CAMERA_MATRIX_ROWS).clone();
+            current_state.camera.camera_matrix = new_camera_matrix.reshape(1, CameraSystemVars::CAMERA_MATRIX_ROWS).clone();
         }
 
 
-        //clear distortion_state variable, fill from loaded state
-        current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
+        //distortion_state variable, fill from loaded state
         if(!state_to_load.camera_system().distortion_matrix().empty()){
             values.clear();
             for(auto const &value : state_to_load.camera_system().distortion_matrix()){
                 values.push_back(value);
             }
             cv::Mat new_distortion_matrix (values);
-            current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, DISTORTION_MATRIX_ROWS).clone();
+            current_state.camera.distortion_matrix = new_distortion_matrix.reshape(1, CameraSystemVars::DISTORTION_MATRIX_ROWS).clone();
         }
-
 
         //fill marker_dictionary variable from loaded state
         current_state.camera.marker_dictionary = state_to_load.camera_system().marker_dictionary();
 
-        //fill camera_options map from loaded state
-        current_state.camera.camera_options.clear();
+        //camera_options map from loaded state
         for(auto const &option : state_to_load.camera_system().options()){
             current_state.camera.camera_options.insert(std::pair<std::string, bool>(option.first, option.second));
         }
 
         input.close();
         return "current state loaded from '"+load_name+"'";
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() != 3){
             return "please provide a saved state to delete\n    ex: delete state config1";
         }
@@ -361,27 +354,21 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //if value is 'current', clear out current state
         //if not, attempt to delete given save state's file
-        if(state_to_delete == "current"){
-            current_state.robot.robots.clear();
-            current_state.collector.collectors.clear();
-            current_state.camera.url.clear();
-            current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
-            current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
-            current_state.camera.marker_dictionary = 0;
-            current_state.camera.camera_options.clear();
+        if(state_to_delete == StateSystemVars::CURRENT_KEYWORD){
+            current_state = StateVariables();
             return "current state has been cleared";
         }else{
-            if(std::filesystem::remove((SAVE_STATE_DIR+state_to_delete).c_str())){
+            if(std::filesystem::remove((StateSystemVars::SAVE_DIR+state_to_delete).c_str())){
                 return "state '"+state_to_delete+"' has been removed";
             }else{
                 return "saved state '"+state_to_delete+"' does not exist";
             }
         }
-    }else if(tokens[0] == "list"){
+    }else if(tokens[0] == LIST_CMD){
         std::string response = "Saved states:";
 
         //get file names in the 'states' directory
-        for (const auto & entry : std::filesystem::directory_iterator(SAVE_STATE_DIR)){
+        for (const auto & entry : std::filesystem::directory_iterator(StateSystemVars::SAVE_DIR)){
             std::string filename_string = entry.path().string();
             response += "\n    "+filename_string.substr(filename_string.find_last_of("/") + 1);
         }
@@ -402,7 +389,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
  * @return response to user command as string
  */
 std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
-    if(tokens[0] == "list"){
+    if(tokens[0] == LIST_CMD){
         std::stringstream response;
         response << "Current collectors:";
 
@@ -411,7 +398,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
         }
 
         return response.str();
-    }else if(tokens[0] == "set"){
+    }else if(tokens[0] == SET_CMD){
         if(tokens.size() != 5){
             return "please provide a collector name, ip, and port\n    ex: set collector gcs 127.0.0.1 53";
         }
@@ -441,7 +428,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
 
         current_state.collector.collectors.insert(std::pair(collector_id, endpoint));
         return collector_id+" added with ip "+tokens[3]+":"+tokens[4];
-    }else if(tokens[0] == "get"){
+    }else if(tokens[0] == GET_CMD){
         if(tokens.size() != 3){
             return "please provide a collector to get\n    ex: get collector gcs";
         }
@@ -456,7 +443,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
             response << collector_to_get << ": " << index->second;
             return response.str();
         }
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() != 3){
             return "please provide a collector to delete\n    ex: delete collector gcs";
         }
@@ -486,7 +473,7 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
  * @return response to user command as string
  */
 std::string command_handler::camera_system(const std::vector<std::string>& tokens, StateVariables& current_state){
-    if(tokens[0] == "list"){
+    if(tokens[0] == LIST_CMD){
         std::stringstream response;
         response << "Current camera variables:";
 
@@ -514,20 +501,20 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         return response.str();
-    }else if(tokens[0] == "set"){
+    }else if(tokens[0] == SET_CMD){
         if(tokens.size() < 3){
             return "please provide a variable to set\n    ex: set camera url http://example.com";
         }
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == CameraSystemVars::URL){
             if(tokens.size() != 4){
                 return "please provide a value for variable '"+variable+"'\n    ex: set camera url http://example.com";
             }
             current_state.camera.url = tokens[3];
             return "camera url set to '"+tokens[3]+"'";
-        }else if(variable == "camera_matrix" || variable == "distortion_matrix"){
+        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX){
             // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
             // cv::Mat to the chosen variable
             if(tokens.size() != 4){
@@ -536,13 +523,13 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
             std::vector<std::string> values = tokenize_values_by_commas(tokens[3]);
 
-            if(variable == "camera_matrix"){
+            if(variable == CameraSystemVars::CAM_MATRIX){
                 if(values.size() != 9){
                     return "please provide a comma separated list of 9 doubles, "+std::to_string(values.size())+" given";
                 }
 
                 try{
-                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, CAMERA_MATRIX_ROWS);
+                    current_state.camera.camera_matrix = values_by_comma_to_mat(values, CameraSystemVars::CAMERA_MATRIX_ROWS);
                     return "'"+variable+"' variable set with values "+tokens[3];
                 }catch(const std::invalid_argument& err){
                     spdlog::error(err.what());
@@ -554,14 +541,14 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 }
 
                 try{
-                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, DISTORTION_MATRIX_ROWS);
+                    current_state.camera.distortion_matrix = values_by_comma_to_mat(values, CameraSystemVars::DISTORTION_MATRIX_ROWS);
                     return "'"+variable+"' variable set with values "+tokens[3];
                 }catch(const std::invalid_argument& err){
                     spdlog::error(err.what());
                     return "please provide a comma separated list of doubles";
                 }
             }
-        }else if(variable == "marker_dictionary"){
+        }else if(variable == CameraSystemVars::MARKER_DICT){
             if(tokens.size() != 4){
                 return "please provide an integer for variable '"+variable+"'\n    ex: set camera "+variable+" 6";
             }
@@ -574,7 +561,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
 
             return "'"+variable+"' variable set with value "+tokens[3];
-        }else if(variable == "camera_options"){
+        }else if(variable == CameraSystemVars::OPTIONS){
             if(tokens.size() != 5){
                 return "please provide a name and boolean value for '"+variable+"'\n    ex: set camera "+variable+" stream true";
             }
@@ -593,32 +580,32 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         return "variable '"+variable+"' does not exist";
-    }else if(tokens[0] == "get"){
+    }else if(tokens[0] == GET_CMD){
         if(tokens.size() < 3){
             return "please provide a variable to get\n    ex: get camera url";
         }
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == CameraSystemVars::URL){
             return "url: "+current_state.camera.url;
-        }else if(variable == "camera_matrix" || variable == "distortion_matrix") {
+        }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX) {
             std::stringstream response;
             response << variable << ": ";
 
             cv::Mat matrix_to_get;
-            if(variable == "camera_matrix"){
+            if(variable == CameraSystemVars::CAM_MATRIX){
                 matrix_to_get = current_state.camera.camera_matrix;
-            }else if(variable == "distortion_matrix"){
+            }else{
                 matrix_to_get = current_state.camera.distortion_matrix;
             }
 
             response << build_matrix_string(matrix_to_get);
 
             return response.str();
-        }else if(variable == "marker_dictionary"){
+        }else if(variable == CameraSystemVars::MARKER_DICT){
             return "marker_dictionary: "+std::to_string(current_state.camera.marker_dictionary);
-        }else if(variable == "camera_options"){
+        }else if(variable == CameraSystemVars::OPTIONS){
             std::stringstream response;
             response << variable << ": ";
 
@@ -630,22 +617,22 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         return "variable '"+variable+"' does not exist";
-    }else if(tokens[0] == "delete"){
+    }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() < 3){
             return "please provide a variable to delete\n    ex: delete camera url";
         }
 
         std::string variable = tokens[2];
 
-        if(variable == "url"){
+        if(variable == CameraSystemVars::URL){
             current_state.camera.url = "";
-        }else if(variable == "camera_matrix"){
+        }else if(variable == CameraSystemVars::CAM_MATRIX){
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
-        }else if(variable == "distortion_matrix"){
+        }else if(variable == CameraSystemVars::DIST_MATRIX){
             current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());;
-        }else if(variable == "marker_dictionary"){
+        }else if(variable == CameraSystemVars::MARKER_DICT){
             current_state.camera.marker_dictionary = 0;
-        }else if(variable == "camera_options"){
+        }else if(variable == CameraSystemVars::OPTIONS){
             current_state.camera.camera_options.clear();
         }else{
            return "variable '"+variable+"' does not exist";
