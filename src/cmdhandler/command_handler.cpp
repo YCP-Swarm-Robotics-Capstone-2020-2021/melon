@@ -237,7 +237,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         State state_to_save;
         for(auto const& robot : current_state.robot.robots){
             for(auto const& marker_id : robot.second)
-                (*state_to_save.mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
+                (*state_to_save.mutable_robot_system()->mutable_robots())[robot.first].mutable_ids()->Add(marker_id);
         }
 
         //save "collectors" map
@@ -245,17 +245,17 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             Endpoint endpoint;
             endpoint.set_address(collector.second.address().to_string());
             endpoint.set_port(collector.second.port());
-            (*state_to_save.mutable_collectors())[collector.first] = endpoint;
+            (*state_to_save.mutable_collector_system()->mutable_collectors())[collector.first] = endpoint;
         }
 
         //save "url" string variable
-        state_to_save.set_url(current_state.camera.url);
+        state_to_save.mutable_camera_system()->set_url(current_state.camera.url);
 
         //save "camera_matrix" cv::Mat
         cv::Mat camera_matrix = current_state.camera.camera_matrix;
         for (int row = 0; row < camera_matrix.rows; ++row) {
             for (int col = 0; col < camera_matrix.cols; ++col) {
-                state_to_save.mutable_camera_matrix()->Add(camera_matrix.at<double>(row, col));
+                state_to_save.mutable_camera_system()->mutable_camera_matrix()->Add(camera_matrix.at<double>(row, col));
             }
         }
 
@@ -263,16 +263,16 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         cv::Mat distortion_matrix = current_state.camera.distortion_matrix;
         for (int row = 0; row < distortion_matrix.rows; ++row) {
             for (int col = 0; col < distortion_matrix.cols; ++col) {
-                state_to_save.mutable_distortion_matrix()->Add(distortion_matrix.at<double>(row, col));
+                state_to_save.mutable_camera_system()->mutable_distortion_matrix()->Add(distortion_matrix.at<double>(row, col));
             }
         }
 
         //save marker_dictionary int
-        state_to_save.set_marker_dictionary(current_state.camera.marker_dictionary);
+        state_to_save.mutable_camera_system()->set_marker_dictionary(current_state.camera.marker_dictionary);
 
         //save camera_options map
         for(auto const& option : current_state.camera.camera_options){
-            (*state_to_save.mutable_options())[option.first] = option.second;
+            (*state_to_save.mutable_camera_system()->mutable_options())[option.first] = option.second;
         }
 
         std::fstream output(SAVE_STATE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -297,7 +297,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //clear robots state variable, fill from loaded State instance above
         current_state.robot.robots.clear();
-        for(auto const &robot : state_to_load.robots()){
+        for(auto const &robot : state_to_load.robot_system().robots()){
             std::vector<int> marker_ids_to_save;
             for(auto const &marker_id : robot.second.ids()){
                 marker_ids_to_save.push_back(marker_id);
@@ -307,7 +307,7 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //clear collector state variable, fill from loaded State
         current_state.collector.collectors.clear();
-        for(auto const &collector : state_to_load.collectors()){
+        for(auto const &collector : state_to_load.collector_system().collectors()){
             auto endpoint = asio::ip::udp::endpoint(
                     asio::ip::make_address(collector.second.address()),
                     collector.second.port());
@@ -315,13 +315,13 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         }
 
         //fill url variable from loaded state
-        current_state.camera.url = state_to_load.url();
+        current_state.camera.url = state_to_load.camera_system().url();
 
         //clear camera_matrix state variable, fill from loaded state
         current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());
         std::vector<double> values;
-        if(!state_to_load.camera_matrix().empty()){
-            for(auto const &value : state_to_load.camera_matrix()){
+        if(!state_to_load.camera_system().camera_matrix().empty()){
+            for(auto const &value : state_to_load.camera_system().camera_matrix()){
                 values.push_back(value);
             };
             cv::Mat new_camera_matrix (values);
@@ -331,9 +331,9 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
         //clear distortion_state variable, fill from loaded state
         current_state.camera.distortion_matrix = cv::Mat::zeros(current_state.camera.distortion_matrix.size(), current_state.camera.distortion_matrix.type());
-        if(!state_to_load.distortion_matrix().empty()){
+        if(!state_to_load.camera_system().distortion_matrix().empty()){
             values.clear();
-            for(auto const &value : state_to_load.distortion_matrix()){
+            for(auto const &value : state_to_load.camera_system().distortion_matrix()){
                 values.push_back(value);
             }
             cv::Mat new_distortion_matrix (values);
@@ -342,11 +342,11 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
 
 
         //fill marker_dictionary variable from loaded state
-        current_state.camera.marker_dictionary = state_to_load.marker_dictionary();
+        current_state.camera.marker_dictionary = state_to_load.camera_system().marker_dictionary();
 
         //fill camera_options map from loaded state
         current_state.camera.camera_options.clear();
-        for(auto const &option : state_to_load.options()){
+        for(auto const &option : state_to_load.camera_system().options()){
             current_state.camera.camera_options.insert(std::pair<std::string, bool>(option.first, option.second));
         }
 
