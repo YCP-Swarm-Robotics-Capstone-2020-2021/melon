@@ -529,12 +529,13 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         if(variable == CameraSystemVars::TYPE){
             std::string value;
-            if(tokens.size() != 4)
+            if(tokens.size() == 4)
             {
                 // Make the value lowercase
                 value = tokens[3];
                 std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
             }
+            spdlog::info(value);
             if(tokens.size() != 4 || std::find(
                     CameraSystemVars::TYPES.begin(),
                     CameraSystemVars::TYPES.end(),
@@ -547,6 +548,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                     ss << type << ", ";
                 }
                 ss << "\n ex: set camera " << variable << CameraSystemVars::TYPES[0];
+
+                return ss.str();
             }
 
             current_state.camera.type = value;
