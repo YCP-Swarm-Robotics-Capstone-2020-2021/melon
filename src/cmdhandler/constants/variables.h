@@ -3,6 +3,7 @@
 
 namespace CameraSystemVars
 {
+    constexpr char CONNECTED[] = "connected";
     constexpr char URL[] = "url";
     constexpr char CAM_MATRIX[] = "camera_matrix";
     constexpr char DIST_MATRIX[] = "distortion_matrix";
