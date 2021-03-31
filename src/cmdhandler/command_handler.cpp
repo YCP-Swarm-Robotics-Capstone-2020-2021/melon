@@ -245,7 +245,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_collector_system()->mutable_collectors())[collector.first] = endpoint;
         }
 
-        // save "connected" variable
+        //save "type" variable
+        state_to_save.mutable_camera_system()->set_type(current_state.camera.type);
+
+        //save "connected" variable
         state_to_save.mutable_camera_system()->set_connected(current_state.camera.connected);
 
         //save "url" string variable
@@ -315,7 +318,10 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             current_state.collector.collectors.insert(std::pair(collector.first, endpoint));
         }
 
-        // fill connected variable from loaded state
+        //fill type variable from loaded state
+        current_state.camera.type = state_to_load.camera_system().type();
+
+        //fill connected variable from loaded state
         current_state.camera.connected = state_to_load.camera_system().connected();
 
         //fill url variable from loaded state
@@ -484,7 +490,10 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         std::stringstream response;
         response << "Current camera variables:";
 
-        // add connected variable
+        //add type variable
+        response << "\n    " << CameraSystemVars::TYPE << ": " << current_state.camera.type;
+
+        //add connected variable
         response << "\n    " << CameraSystemVars::CONNECTED << ": " << std::boolalpha << current_state.camera.connected;
 
         //add url variable
