@@ -11,6 +11,8 @@ SpinnakerCamera::SpinnakerCamera(StateVariables& state) :
 
 SpinnakerCamera::~SpinnakerCamera()
 {
+    if(is_connected())
+        do_disconnect();
     m_psys->ReleaseInstance();
 }
 
@@ -41,7 +43,7 @@ bool set_node_val(Spinnaker::GenApi::INodeMap& node_map, const char* node_name, 
     return true;
 }
 
-bool SpinnakerCamera::connect()
+bool SpinnakerCamera::do_connect()
 {
     // Get available cameras
     Spinnaker::CameraList clist = m_psys->GetCameras();
@@ -59,8 +61,7 @@ bool SpinnakerCamera::connect()
         if(Spinnaker::GenApi::IsAvailable(pserial) && Spinnaker::GenApi::IsReadable(pserial))
         {
             Spinnaker::GenICam::gcstring serial = pserial->GetValue();
-            // TODO: Use serial number from StateVariables
-            if(serial == "")
+            if(serial == get_connection_url().c_str())
             {
                 m_pcam = pcam;
                 break;
@@ -112,7 +113,7 @@ bool SpinnakerCamera::connect()
     return true;
 }
 
-bool SpinnakerCamera::disconnect()
+bool SpinnakerCamera::do_disconnect()
 {
     m_pcam->EndAcquisition();
     m_pcam->DeInit();

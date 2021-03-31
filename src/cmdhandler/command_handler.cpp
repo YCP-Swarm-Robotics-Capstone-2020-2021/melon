@@ -23,6 +23,7 @@
 #include "constants/systems.h"
 #include "constants/variables.h"
 #include <sstream>
+#include <cctype>
 
 /**
  * Do a command by calling a specific target system depending on user command string.
@@ -517,24 +518,41 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == CameraSystemVars::CONNECTED){
+        if(variable == CameraSystemVars::TYPE){
+            std::string value;
             if(tokens.size() != 4)
             {
-                return "please provide a value for variable '"+variable+"'\n    ex: set camera "+variable+" true";
+                // Make the value lowercase
+                value = tokens[3];
+                std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
+            }
+            if(tokens.size() != 4 || std::find(
+                    CameraSystemVars::TYPES.begin(),
+                    CameraSystemVars::TYPES.end(),
+                    value) == CameraSystemVars::TYPES.end())
+            {
+                std::stringstream ss;
+                ss << "please provide a value for variable '"+variable+"'. Valid options are: ";
+                for(const char* type : CameraSystemVars::TYPES)
+                {
+                    ss << type << ", ";
+                }
+                ss << "\n ex: set camera " << variable << CameraSystemVars::TYPES[0];
             }
 
+            current_state.camera.type = value;
+            return "camera " + variable + " set to '" + value + "'";
+        }else if(variable == CameraSystemVars::CONNECTED){
+            if(tokens.size() != 4)
+                return "please provide a value for variable '"+variable+"'\n    ex: set camera "+variable+" true";
+
             if(tokens[3] == "true")
-            {
                 current_state.camera.connected = true;
-            }
             else if(tokens[3] == "false")
-            {
                 current_state.camera.connected = false;
-            }
             else
-            {
                 return "given value for variable +'"+variable+"' is not valid. acceptable values are 'true' and 'false'";
-            }
+
             return "camera "+variable+" set to '"+tokens[3]+"'";
         }else if(variable == CameraSystemVars::URL){
             if(tokens.size() != 4){
@@ -615,8 +633,10 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
 
         std::string variable = tokens[2];
 
-        if(variable == CameraSystemVars::CONNECTED){
-            return std::string(CameraSystemVars::CONNECTED)+": " + (current_state.camera.connected ? "true" : "false");
+        if(variable == CameraSystemVars::TYPE){
+            return variable + ": " + current_state.camera.type;
+        }else if(variable == CameraSystemVars::CONNECTED){
+            return variable+": " + (current_state.camera.connected ? "true" : "false");
         }else if(variable == CameraSystemVars::URL){
             return "url: "+current_state.camera.url;
         }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX) {
@@ -700,7 +720,7 @@ std::string command_handler::help_command(){
     response += "for the 'camera' system you can use the commands:\n";
     response += "    get, set, list (current camera variables), delete\n";
     response += "you can modify the following variables:\n";
-    response += "    connected, url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
+    response += "    type, connected, url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
     response += "ex: 'get camera url' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera url'\n\n";
 
     response += "intended usage for each target system/variable will be clarified if used incorrectly.\n\n";

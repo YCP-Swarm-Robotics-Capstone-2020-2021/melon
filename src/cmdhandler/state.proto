@@ -23,12 +23,13 @@ message CollectorSys
 
 message CameraSys
 {
-  bool connected = 1;
-  string url = 2;
-  repeated double camera_matrix = 3;
-  repeated double distortion_matrix = 4;
-  int32 marker_dictionary = 5;
-  map<string, bool> options = 6;
+  string type = 1;
+  bool connected = 2;
+  string url = 3;
+  repeated double camera_matrix = 4;
+  repeated double distortion_matrix = 5;
+  int32 marker_dictionary = 6;
+  map<string, bool> options = 7;
 }
 
 message State

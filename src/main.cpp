@@ -14,8 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "cmdhandler/server.h"
-#include "camera/opencvcamera.h"
-#include "camera/spinnakercamera.h"
+#include "camera/camerawrapper.h"
 #include "collectorserver/collectorserver.h"
 
 const std::string LOG_DIR = "logs/";
@@ -88,20 +87,12 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     StateVariables local_variables;
     state->apply(local_variables);
 
-    // TODO: Connect to camera
-    // TODO: Dynamically use different camera types
-    //std::unique_ptr<AbstractCamera> camera = std::make_unique<SpinnakerCamera>(local_variables);
-    Camera camera = AbstractCamera::GetCamera(local_variables);
-    if(!camera->connect())
-    {
-        spdlog::critical("Camera connection failed");
-        exit(-1);
-    }
+    // TODO: Wait until camera connected is true
+
+    CameraWrapper camera(local_variables);
 
     CollectorServer server(local_variables);
 
-    // TODO: Loop while camera should be connected (indicated within the state variables, there should be a variable
-    //       that specifies if the user has requested a camera disconnect or not)
     bool loop = true;
     cv::Mat frame;
     while (loop)
@@ -109,8 +100,13 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
         // Apply any changes to state variables
         if(state->apply(local_variables))
         {
-            camera->update_state(local_variables);
             server.update_state(local_variables);
+            camera.update_state(local_variables);
+
+            if(!local_variables.camera.connected)
+            {
+                // TODO: Wait until connected is true
+            }
         }
 
         if(camera->get_frame(frame))
@@ -125,10 +121,5 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
         if(cv::waitKey(1) == 27)
             loop = false;
-    }
-
-    if(!camera->disconnect())
-    {
-        spdlog::warn("Camera disconnect failed");
     }
 }

@@ -25,6 +25,7 @@ struct CollectorSystem
 
 struct CameraSystem
 {
+    std::string type;
     bool connected = false;
     std::string url;
     cv::Mat camera_matrix;

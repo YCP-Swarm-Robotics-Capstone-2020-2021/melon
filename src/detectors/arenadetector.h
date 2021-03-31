@@ -3,12 +3,12 @@
 
 #include "../cmdhandler/statevariables.h"
 #include "marker.h"
-#include "../camera/camera.h"
+#include "../camera/CameraWrapper.h"
 
 class ArenaDetector
 {
 public:
-    static std::array<Marker, 4> detect(AbstractCamera& camera, StateVariables& state);
+    static std::array<Marker, 4> detect(CameraWrapper& camera, StateVariables& state);
 };
 
 
