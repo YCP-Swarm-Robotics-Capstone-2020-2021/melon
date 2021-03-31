@@ -84,42 +84,50 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
 
 void camera_thread_func(std::shared_ptr<GlobalState> state)
 {
+    return;
     StateVariables local_variables;
     state->apply(local_variables);
 
     // TODO: Wait until camera connected is true
 
-    CameraWrapper camera(local_variables);
-
-    CollectorServer server(local_variables);
-
-    bool loop = true;
-    cv::Mat frame;
-    while (loop)
+    try
     {
-        // Apply any changes to state variables
-        if(state->apply(local_variables))
-        {
-            server.update_state(local_variables);
-            camera.update_state(local_variables);
+        CameraWrapper camera(local_variables);
 
-            if(!local_variables.camera.connected)
+        CollectorServer server(local_variables);
+
+        bool loop = true;
+        cv::Mat frame;
+        while (loop)
+        {
+            // Apply any changes to state variables
+            if(state->apply(local_variables))
             {
-                // TODO: Wait until connected is true
+                server.update_state(local_variables);
+                camera.update_state(local_variables);
+
+                if(!local_variables.camera.connected)
+                {
+                    // TODO: Wait until connected is true
+                }
             }
+
+            if(camera->get_frame(frame))
+            {
+                cv::resize(frame, frame, cv::Size(1280, 720));
+                cv::imshow("spinnaker cam", frame);
+            }
+
+            // TODO: Actually generate/get data
+            std::string data = "data";
+            server.send(data);
+
+            if(cv::waitKey(1) == 27)
+                loop = false;
         }
-
-        if(camera->get_frame(frame))
-        {
-            cv::resize(frame, frame, cv::Size(1280, 720));
-            cv::imshow("spinnaker cam", frame);
-        }
-
-        // TODO: Actually generate/get data
-        std::string data = "data";
-        server.send(data);
-
-        if(cv::waitKey(1) == 27)
-            loop = false;
+    }
+    catch (std::exception& e)
+    {
+        spdlog::critical("Exception: \n{}", e.what());
     }
 }
