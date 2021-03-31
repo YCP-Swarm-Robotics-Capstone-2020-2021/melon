@@ -83,7 +83,7 @@ FetchContent_Declare(
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-# Gather all test files
+# Gather all test files/related files needed for tests
 file(GLOB_RECURSE TESTS
         "${CMAKE_SOURCE_DIR}/tests/*.cc"
         "${CMAKE_SOURCE_DIR}/src/cmdhandler/command_handler.*"
