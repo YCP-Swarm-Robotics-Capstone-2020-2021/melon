@@ -69,7 +69,6 @@ TEST(RobotSystemSuite, Lists_Robots)
 {
     input_robot_sys.clear();
 
-    //insert initial robot
     input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r1", "1,2,3,4"});
     command_handler::do_command(input_robot_sys, testing_state_robot_sys);
 
@@ -96,7 +95,6 @@ TEST(RobotSystemSuite, Invalid_Markers_Given)
 
     std::string response = command_handler::do_command(input_robot_sys, testing_state_robot_sys);
 
-    //check that response is correct and size of r1's value is correct
     EXPECT_THAT(response, HasSubstr("please provide"));
     EXPECT_THAT(response, HasSubstr("integers"));
 }
