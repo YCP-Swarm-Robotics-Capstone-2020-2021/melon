@@ -2,7 +2,7 @@
 #define MELON_ROBOTDETECTOR_H
 
 #include <vector>
-#include "../camera/camerawrapper.h.h"
+#include "../camera/camerawrapper.h"
 #include "../cmdhandler/statevariables.h"
 #include "robotdata.h"
 
