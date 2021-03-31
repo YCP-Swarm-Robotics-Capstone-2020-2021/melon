@@ -135,7 +135,7 @@ void session::do_write(std::string msg, std::size_t length)
                                   }
 
                                   if(!pmsg->empty())
-                                      spdlog::info(socket_.remote_endpoint().address().to_string()+" >> \n{}", *pmsg);
+                                      spdlog::info("{} >> \n{}", socket_.remote_endpoint().address().to_string(), *pmsg);
                               }
 
                               // Wait for more input
