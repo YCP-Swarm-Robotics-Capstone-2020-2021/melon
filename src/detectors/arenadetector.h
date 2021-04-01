@@ -3,7 +3,7 @@
 
 #include "../cmdhandler/statevariables.h"
 #include "marker.h"
-#include "../camera/CameraWrapper.h"
+#include "../camera/camerawrapper.h"
 
 class ArenaDetector
 {
