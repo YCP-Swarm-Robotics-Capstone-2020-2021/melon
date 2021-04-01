@@ -84,7 +84,6 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
 
 void camera_thread_func(std::shared_ptr<GlobalState> state)
 {
-    return;
     StateVariables local_variables;
     state->apply(local_variables);
 
