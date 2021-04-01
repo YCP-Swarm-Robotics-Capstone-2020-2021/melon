@@ -14,8 +14,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "cmdhandler/server.h"
-#include "camera/opencvcamera.h"
-#include "camera/spinnakercamera.h"
+#include "camera/camerawrapper.h"
 #include "collectorserver/collectorserver.h"
 
 const std::string LOG_DIR = "logs/";
@@ -88,46 +87,46 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     StateVariables local_variables;
     state->apply(local_variables);
 
-    // TODO: Connect to camera
-    // TODO: Dynamically use different camera types
-    std::unique_ptr<Camera> camera = std::make_unique<SpinnakerCamera>(local_variables);
-    if(!camera->connect())
-    {
-        spdlog::critical("Camera connection failed");
-        exit(-1);
-    }
+    // TODO: Wait until camera connected is true
 
-    CollectorServer server(local_variables);
-
-    // TODO: Loop while camera should be connected (indicated within the state variables, there should be a variable
-    //       that specifies if the user has requested a camera disconnect or not)
-    bool loop = true;
-    cv::Mat frame;
-    while (loop)
+    try
     {
-        // Apply any changes to state variables
-        if(state->apply(local_variables))
+        CameraWrapper camera(local_variables);
+
+        CollectorServer server(local_variables);
+
+        bool loop = true;
+        cv::Mat frame;
+        while (loop)
         {
-            camera->update_state(local_variables);
-            server.update_state(local_variables);
+            // Apply any changes to state variables
+            if(state->apply(local_variables))
+            {
+                server.update_state(local_variables);
+                camera.update_state(local_variables);
+
+                if(!local_variables.camera.connected)
+                {
+                    // TODO: Wait until connected is true
+                }
+            }
+
+            if(camera->get_frame(frame))
+            {
+                cv::resize(frame, frame, cv::Size(1280, 720));
+                cv::imshow("spinnaker cam", frame);
+            }
+
+            // TODO: Actually generate/get data
+            std::string data = "data";
+            server.send(data);
+
+            if(cv::waitKey(1) == 27)
+                loop = false;
         }
-
-        if(camera->get_frame(frame))
-        {
-            cv::resize(frame, frame, cv::Size(1280, 720));
-            cv::imshow("spinnaker cam", frame);
-        }
-
-        // TODO: Actually generate/get data
-        std::string data = "data";
-        server.send(data);
-
-        if(cv::waitKey(1) == 27)
-            loop = false;
     }
-
-    if(!camera->disconnect())
+    catch (std::exception& e)
     {
-        spdlog::warn("Camera disconnect failed");
+        spdlog::critical("Exception: \n{}", e.what());
     }
 }

@@ -2,14 +2,14 @@
 #define MELON_ROBOTDETECTOR_H
 
 #include <vector>
-#include "../camera/camera.h"
+#include "../camera/camerawrapper.h"
 #include "../cmdhandler/statevariables.h"
 #include "robotdata.h"
 
 class RobotDetector
 {
 public:
-    static std::vector<RobotData> detect(Camera& camera, StateVariables& state);
+    static std::vector<RobotData> detect(CameraWrapper& camera, StateVariables& state);
 };
 
 
