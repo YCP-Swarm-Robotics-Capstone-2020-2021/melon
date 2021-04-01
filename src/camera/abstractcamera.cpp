@@ -5,7 +5,6 @@
 
 AbstractCamera::AbstractCamera(StateVariables& state) : m_type(state.camera.type)
 {
-    update_state(state);
 }
 
 void AbstractCamera::enable_video_output() { m_video_output = true; }

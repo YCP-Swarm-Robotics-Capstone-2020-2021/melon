@@ -106,9 +106,6 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
             // Apply any changes to state variables
             if(state->apply(local_variables))
             {
-                server.update_state(local_variables);
-                camera.update_state(local_variables);
-
                 if(!local_variables.camera.connected)
                 {
                     // Wait for camera to be connected and necessary properties present
@@ -118,6 +115,9 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
                                 });
                     state->apply(local_variables);
                 }
+
+                server.update_state(local_variables);
+                camera.update_state(local_variables);
             }
 
             if(camera->get_frame(frame))
