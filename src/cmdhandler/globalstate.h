@@ -4,6 +4,8 @@
 #include "statevariables.h"
 #include <atomic>
 #include <mutex>
+#include <condition_variable>
+#include <functional>
 
 class GlobalState
 {
@@ -16,9 +18,13 @@ public:
     bool apply(StateVariables& state);
     // Get a new local instance of the global state
     StateVariables get_state();
+
+    // Block current thread until the condition in func returns true
+    void wait(const std::function<bool(const StateVariables&)>& func);
 private:
     StateVariables m_state;
     std::mutex m_mutex;
+    std::condition_variable m_cond_var;
 };
 
 #endif //MELON_GLOBALSTATE_H

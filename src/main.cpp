@@ -91,6 +91,12 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
     try
     {
+        // Wait for camera to be connected and necessary properties present
+        state->wait([](const StateVariables& state)
+                    {
+                        return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                    });
+
         CameraWrapper camera(local_variables);
 
         CollectorServer server(local_variables);
@@ -107,14 +113,18 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
                 if(!local_variables.camera.connected)
                 {
-                    // TODO: Wait until connected is true
+                    // Wait for camera to be connected and necessary properties present
+                    state->wait([](const StateVariables& state)
+                                {
+                                    return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                                });
                 }
             }
 
             if(camera->get_frame(frame))
             {
                 cv::resize(frame, frame, cv::Size(1280, 720));
-                cv::imshow("spinnaker cam", frame);
+                cv::imshow("camera", frame);
             }
 
             // TODO: Actually generate/get data
