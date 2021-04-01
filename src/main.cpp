@@ -78,25 +78,23 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
         io_context.run();
     }
     catch (std::exception& e){
-        spdlog::critical("Exception: %s", e.what());
+        spdlog::critical("Exception: {}", e.what());
     }
 }
 
 void camera_thread_func(std::shared_ptr<GlobalState> state)
 {
+    // Wait for camera to be connected and necessary properties present
+    state->wait([](const StateVariables& state)
+                {
+                    return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                });
+
     StateVariables local_variables;
     state->apply(local_variables);
 
-    // TODO: Wait until camera connected is true
-
     try
     {
-        // Wait for camera to be connected and necessary properties present
-        state->wait([](const StateVariables& state)
-                    {
-                        return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
-                    });
-
         CameraWrapper camera(local_variables);
 
         CollectorServer server(local_variables);
@@ -118,6 +116,7 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
                                 {
                                     return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
                                 });
+                    state->apply(local_variables);
                 }
             }
 

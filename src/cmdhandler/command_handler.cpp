@@ -535,7 +535,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 value = tokens[3];
                 std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
             }
-            spdlog::info(value);
+
             if(tokens.size() != 4 || std::find(
                     CameraSystemVars::TYPES.begin(),
                     CameraSystemVars::TYPES.end(),
