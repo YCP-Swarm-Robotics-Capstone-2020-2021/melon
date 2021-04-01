@@ -48,7 +48,10 @@ class StateVariables : public Variables
 {
 public:
     StateVariables() { version.store(0); }
-    StateVariables(const StateVariables& other) : Variables(other) {}
+    StateVariables(const StateVariables& other) : Variables(other)
+    {
+        *this = other;
+    }
     StateVariables& operator=(const StateVariables& other)
     {
         Variables::operator=(other);

@@ -78,16 +78,20 @@ void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> sta
         io_context.run();
     }
     catch (std::exception& e){
-        spdlog::critical("Exception: %s", e.what());
+        spdlog::critical("Exception: {}", e.what());
     }
 }
 
 void camera_thread_func(std::shared_ptr<GlobalState> state)
 {
+    // Wait for camera to be connected and necessary properties present
+    state->wait([](const StateVariables& state)
+                {
+                    return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                });
+
     StateVariables local_variables;
     state->apply(local_variables);
-
-    // TODO: Wait until camera connected is true
 
     try
     {
@@ -107,14 +111,19 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
                 if(!local_variables.camera.connected)
                 {
-                    // TODO: Wait until connected is true
+                    // Wait for camera to be connected and necessary properties present
+                    state->wait([](const StateVariables& state)
+                                {
+                                    return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                                });
+                    state->apply(local_variables);
                 }
             }
 
             if(camera->get_frame(frame))
             {
                 cv::resize(frame, frame, cv::Size(1280, 720));
-                cv::imshow("spinnaker cam", frame);
+                cv::imshow("camera", frame);
             }
 
             // TODO: Actually generate/get data
