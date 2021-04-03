@@ -2,6 +2,7 @@
 #include "opencvcamera.h"
 #include "spinnakercamera.h"
 #include "../cmdhandler/constants/variables.h"
+#include <spdlog/spdlog.h>
 
 AbstractCamera::AbstractCamera(StateVariables& state) : m_type(state.camera.type)
 {
@@ -27,8 +28,9 @@ void AbstractCamera::update_state(StateVariables& state)
     if(m_connection_url != state.camera.url)
     {
         m_connection_url = state.camera.url;
-        // If the camera was connected while the URL was changed, reset the connection
-        if(is_connected())
+        // If the camera was connected while the URL was changed and the camera should continue to be connected,
+        // reset the connection
+        if(is_connected() && state.camera.connected)
         {
             do_disconnect();
             do_connect();
@@ -36,10 +38,18 @@ void AbstractCamera::update_state(StateVariables& state)
     }
 
     if(m_connected && !state.camera.connected)
+    {
         if(!do_disconnect())
+        {
             throw std::runtime_error("Camera failed to disconnect");
+        }
+    }
     else if(!m_connected && state.camera.connected)
+    {
         if(!do_connect())
+        {
             throw std::runtime_error("Camera filed to connect");
+        }
+    }
     m_connected = state.camera.connected;
 }
