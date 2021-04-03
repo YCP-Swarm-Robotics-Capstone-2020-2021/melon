@@ -22,16 +22,20 @@ void CameraWrapper::update_state(StateVariables& state)
 
 std::unique_ptr<AbstractCamera> CameraWrapper::new_camera(StateVariables& state)
 {
+    std::unique_ptr<AbstractCamera> ptr;
     if(state.camera.type == CameraSystemVars::TYPE_OPENCV)
     {
-        return std::make_unique<OpenCvCamera>(state);
+        ptr = std::make_unique<OpenCvCamera>(state);
     }
     else if(state.camera.type == CameraSystemVars::TYPE_SPINNAKER)
     {
-        return std::make_unique<SpinnakerCamera>(state);
+        ptr = std::make_unique<SpinnakerCamera>(state);
     }
     else
     {
         throw std::runtime_error("Invalid camera type '" + state.camera.type + "'");
     }
+
+    ptr->update_state(state);
+    return ptr;
 }

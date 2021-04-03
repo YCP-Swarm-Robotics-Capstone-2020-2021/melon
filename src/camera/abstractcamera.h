@@ -8,6 +8,8 @@
 #include "../cmdhandler/statevariables.h"
 #include "cameracalib.h"
 
+// Abstract base class for all camera types
+// update_state() must be called immediately after object creation to ensure proper initialization
 class AbstractCamera : public UpdateableState
 {
 public:
