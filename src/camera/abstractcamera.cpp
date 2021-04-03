@@ -48,7 +48,7 @@ void AbstractCamera::update_state(StateVariables& state)
     {
         if(!do_connect())
         {
-            throw std::runtime_error("Camera filed to connect");
+            throw std::runtime_error("Camera failed to connect");
         }
     }
     m_connected = state.camera.connected;
