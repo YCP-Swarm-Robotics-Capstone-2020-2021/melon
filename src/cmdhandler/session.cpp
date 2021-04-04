@@ -85,12 +85,6 @@ void session::do_read()
 
 }
 
-/**
- *  Write out to a connection (session) instance
- *
- * @param msg message string to write out
- * @param length length of msg param
- */
 void session::do_write(std::string msg)
 {
     auto self(shared_from_this());

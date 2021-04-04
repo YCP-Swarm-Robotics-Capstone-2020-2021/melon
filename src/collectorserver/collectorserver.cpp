@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <sstream>
 
-CollectorServer::CollectorServer(StateVariables& state) : m_socket(m_service), m_message_count(0)
+CollectorServer::CollectorServer(const StateVariables& state) : m_socket(m_service), m_message_count(0)
 {
     m_socket.open(asio::ip::udp::v4());
     update_state(state);
