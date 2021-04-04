@@ -24,7 +24,7 @@ public:
     /** @brief Create a new session instance
      *
      * @param socket [in] Socket being used for the session
-     * @param state [in] Global state of the program
+     * @param state [in, out] Global state of the program to read from and write to
      */
     session(tcp::socket socket, std::shared_ptr<GlobalState> state);
 
