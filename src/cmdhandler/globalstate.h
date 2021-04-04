@@ -28,7 +28,7 @@ public:
      *
      * @note The version of the incoming state is ignored
      *
-     * @param state [in] Const reference to the new program state
+     * @param state [in] The new program state
      */
     void receive(const StateVariables& state);
 

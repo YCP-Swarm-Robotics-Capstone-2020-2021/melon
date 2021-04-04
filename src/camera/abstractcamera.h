@@ -116,7 +116,7 @@ public:
 protected:
     /** @brief Creates new AbstractCamera instance
      *
-     * @param state [in] Const reference to state that this camera should get its parameters from
+     * @param state [in] State that this camera should get its configuration from
      */
     explicit AbstractCamera(const StateVariables& state);
 

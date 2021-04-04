@@ -7,14 +7,7 @@ session::session(tcp::socket socket, std::shared_ptr<GlobalState> state): socket
 
 }
 
-/**
- * Read tcp stream until a new line character is present to build a command string
- *
- * @param data tcp stream to read
- * @param length length of data param
- * @return command obtained from user as a string
- */
-std::string session::get_command(char data[], std::size_t length){
+std::string session::get_command(const char data[], std::size_t length){
     std::string current_command;
     for (int i = 0; i < length; i++) {
         char c = data[i];
@@ -28,12 +21,6 @@ std::string session::get_command(char data[], std::size_t length){
     return current_command;
 }
 
-/**
- * Tokenize (split) a command string by spaces
- *
- * @param command string to tokenize
- * @return a vector of strings
- */
 std::vector<std::string> session::tokenize_command_by_spaces(std::string command){
     std::vector<std::string> tokens;
 
@@ -50,10 +37,6 @@ std::vector<std::string> session::tokenize_command_by_spaces(std::string command
     return tokens;
 }
 
-/**
- * Initialize a new connection. <br>
- * Will write out command prompt character and begin reading from connection.
- */
 void session::start()
 {
     spdlog::info(socket_.remote_endpoint().address().to_string()+" connected");
@@ -62,10 +45,6 @@ void session::start()
     do_write("> ", 2);
 }
 
-/**
- * Wait for and then read data from a connection (session) instance. <br>
- * Also return command handler's response to user.
- */
 void session::do_read()
 {
         auto self(shared_from_this());

@@ -95,15 +95,6 @@ std::string command_handler::build_matrix_string(const cv::Mat& matrix){
     return response.str();
 }
 
-/**
- * Modifies the 'robots' state variable. <br>
- * A robot has a name and a collection of 4 marker int ids. <br>
- * system functions: set, get, list, and delete robots
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == LIST_CMD){
         std::string response = "Current robots:";
@@ -175,13 +166,6 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
     }
 }
 
-/**
- * Saves and loads current state configurations to binary files in the 'states/' directory
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(!std::filesystem::exists(StateSystemVars::SAVE_DIR)){
         std::error_code ec;
@@ -365,15 +349,6 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
     }
 }
 
-/**
- * Modifies the 'collectors' state variable. <br>
- * A collector has a name and an ip address associated with it, collectors receive data via udp from camera. <br>
- * system functions: set, get, list, and delete collectors
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
     if(tokens[0] == LIST_CMD){
         std::stringstream response;
@@ -450,14 +425,6 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
     }
 }
 
-/**
- * Modifies variables in the 'CameraSystem' struct in 'Variables' class. <br>
- * system functions (on variables mentioned above): set, get, list, and delete
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::camera_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == LIST_CMD){
         std::stringstream response;
@@ -680,11 +647,6 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
     }
 }
 
-/**
- * Display available target systems/commands to user
- *
- * @return help string
- */
 std::string command_handler::help_command(){
     std::string response = "current target systems:\n";
     response += "    robot, state, collector, camera\n\n";

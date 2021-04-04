@@ -15,7 +15,7 @@ class CameraWrapper : public UpdateableState
 public:
      /** @brief Create a new CameraWrapper instance
      *
-     * @param variables [in] Reference to current program state
+     * @param variables [in] Current program state
      * @throws std::runtime_error If camera type within current state is invalid
      */
     explicit CameraWrapper(StateVariables& variables);

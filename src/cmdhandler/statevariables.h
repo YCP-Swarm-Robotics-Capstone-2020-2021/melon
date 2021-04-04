@@ -9,16 +9,25 @@
 #include <asio.hpp>
 #include <asio/ip/udp.hpp>
 
+/** @brief Robot system state
+ *
+ */
 struct RobotSystem
 {
     std::unordered_map<std::string, std::vector<int>> robots;
 };
 
+/** @brief Collector system state
+ *
+ */
 struct CollectorSystem
 {
     std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
 };
 
+/** @brief camera system state
+ *
+ */
 struct CameraSystem
 {
     std::string type;
@@ -30,6 +39,14 @@ struct CameraSystem
     std::unordered_map<std::string, bool> camera_options;
 };
 
+/** @brief Container class for state variables
+ *
+ * This is a container class for state variables to be extended by StateVariables. StateVariables
+ * requires a custom copy constructor because of atomic version number, so extending this class means all of the
+ * variables don't need to be manually added to the copy constructor
+ *
+ * @see StateVariables
+ */
 class Variables
 {
 public:
@@ -40,6 +57,9 @@ protected:
     Variables() = default;
 };
 
+/** @brief Variables for the system state
+ *
+ */
 class StateVariables : public Variables
 {
 public:
@@ -69,7 +89,7 @@ class UpdateableState
 public:
     /** @brief Update the class instance to coincide with the program's current state
      *
-     * @param state [in] Const reference to program state to update from
+     * @param state [in] Program state to update from
      */
     virtual void update_state(const StateVariables& state)=0;
 };
