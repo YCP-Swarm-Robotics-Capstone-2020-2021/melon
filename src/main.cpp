@@ -87,7 +87,7 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     // Wait for camera to be connected and necessary properties present
     state->wait([](const StateVariables& state)
                 {
-                    return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                    return state.camera.connected && !state.camera.type.empty() && !state.camera.source.empty();
                 });
 
     StateVariables local_variables;
@@ -111,7 +111,7 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
                     // Wait for camera to be connected and necessary properties present
                     state->wait([](const StateVariables& state)
                                 {
-                                    return state.camera.connected && !state.camera.type.empty() && !state.camera.url.empty();
+                                    return state.camera.connected && !state.camera.type.empty() && !state.camera.source.empty();
                                 });
                     state->apply(local_variables);
                 }

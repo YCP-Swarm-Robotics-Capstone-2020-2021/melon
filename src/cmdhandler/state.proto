@@ -25,7 +25,7 @@ message CameraSys
 {
   string type = 1;
   bool connected = 2;
-  string url = 3;
+  string source = 3;
   repeated double camera_matrix = 4;
   repeated double distortion_matrix = 5;
   int32 marker_dictionary = 6;

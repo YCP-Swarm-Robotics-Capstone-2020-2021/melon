@@ -61,7 +61,7 @@ bool SpinnakerCamera::do_connect()
         if(Spinnaker::GenApi::IsAvailable(pserial) && Spinnaker::GenApi::IsReadable(pserial))
         {
             Spinnaker::GenICam::gcstring serial = pserial->GetValue();
-            if(serial == get_connection_url().c_str())
+            if(serial == get_source().c_str())
             {
                 m_pcam = pcam;
                 break;

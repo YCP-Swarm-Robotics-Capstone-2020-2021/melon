@@ -27,7 +27,7 @@ struct CameraSystem
 {
     std::string type;
     bool connected = false;
-    std::string url;
+    std::string source;
     cv::Mat camera_matrix;
     cv::Mat distortion_matrix;
     int marker_dictionary = 0;

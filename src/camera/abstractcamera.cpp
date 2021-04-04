@@ -16,7 +16,7 @@ void AbstractCamera::disable_video_postprocessing() { m_video_postprocessing = f
 bool AbstractCamera::video_postprocessing_enabled() { return m_video_postprocessing; }
 
 const CameraCalib& AbstractCamera::get_camera_calib() const { return m_calib; }
-const std::string& AbstractCamera::get_connection_url() const { return m_connection_url; }
+const std::string& AbstractCamera::get_source() const { return m_source; }
 const std::string& AbstractCamera::get_type() const { return m_type; }
 bool AbstractCamera::is_connected() const { return m_connected; }
 
@@ -25,10 +25,10 @@ void AbstractCamera::update_state(StateVariables& state)
     if(m_type != state.camera.type)
         throw std::runtime_error("Wrong camera type -- '" + m_type + "' != '" + state.camera.type + "'");
 
-    if(m_connection_url != state.camera.url)
+    if(m_source != state.camera.source)
     {
-        m_connection_url = state.camera.url;
-        // If the camera was connected while the URL was changed and the camera should continue to be connected,
+        m_source = state.camera.source;
+        // If the camera was connected while the source was changed and the camera should continue to be connected,
         // reset the connection
         if(is_connected() && state.camera.connected)
         {
