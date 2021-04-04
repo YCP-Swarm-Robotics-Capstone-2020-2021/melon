@@ -16,12 +16,13 @@ CollectorServer::~CollectorServer()
 
 void CollectorServer::send(const std::string& data)
 {
+    // Assemble the message
     std::stringstream ss;
-
     ss << "{\"num\": \"" << m_message_count++ << "\", \"data\": \"" << data << "\"}";
     std::string message = ss.str();
     spdlog::info("Sending message to endpoints. Message: {}", message);
 
+    // Send the message to each collector
     for(auto& endpoint : m_endpoints)
     {
         std::stringstream ss;
@@ -38,6 +39,7 @@ void CollectorServer::send(const std::string& data)
 
 void CollectorServer::update_state(StateVariables& state)
 {
+    // Reset and refill the collectors
     m_endpoints.clear();
     m_endpoints.reserve(state.collector.collectors.size());
     for(auto& pair: state.collector.collectors)

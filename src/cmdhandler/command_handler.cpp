@@ -25,13 +25,6 @@
 #include <sstream>
 #include <cctype>
 
-/**
- * Do a command by calling a specific target system depending on user command string.
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::do_command(const std::vector<std::string>& tokens, StateVariables& current_state){
     std::string command = tokens[0];
 
@@ -64,13 +57,6 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
     }
 }
 
-/**
- * Tokenize (split) a value string by commas. <br>
- * Used for when a target system takes a value parameter as a comma separated list.
- *
- * @param values value string to tokenize
- * @return a vector of strings
- */
 std::vector<std::string> command_handler::tokenize_values_by_commas(const std::string& values){
     std::vector<std::string> tokens;
 
@@ -87,13 +73,6 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
     return tokens;
 }
 
-/**
- * Send a vector<string> (doubles) to a cv::Mat. <br>
- * Can throw an error if a non double value is given (std::invalid_argument)
- *
- * @param values vector<string> of values to put in matrix
- * @return matrix of values given in 'values'
- */
 cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& values, const int rows){
     std::vector<double> values_as_double;
     for(int i = 0; i < values.size(); i++){
@@ -103,12 +82,6 @@ cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& 
     return return_mat.reshape(1,rows).clone();
 }
 
-/**
- * Build a "x,x,x,x," list based on a matrix's values
- *
- * @param matrix matrix with values to add to return string
- * @return string for server response
- */
 std::string command_handler::build_matrix_string(const cv::Mat& matrix){
     std::stringstream response;
 

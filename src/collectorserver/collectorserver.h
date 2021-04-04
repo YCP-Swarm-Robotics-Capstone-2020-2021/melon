@@ -4,11 +4,15 @@
 #include <asio.hpp>
 #include "../cmdhandler/statevariables.h"
 
+// Server for sending data from the camera to "collectors"
+// Collectors are given through the command handler system; each collector is a target ip address and port number
+// that data should be sent to
 class CollectorServer : public UpdateableState
 {
 public:
     CollectorServer(StateVariables& state);
     ~CollectorServer();
+    // Send the given data to all collectors
     void send(const std::string& data);
 
     void update_state(StateVariables& state) override;

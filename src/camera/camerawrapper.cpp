@@ -14,8 +14,10 @@ AbstractCamera* CameraWrapper::operator->() const noexcept
 
 void CameraWrapper::update_state(StateVariables& state)
 {
+    // If the camera type has changed, create a new camera of the new type
     if(m_camera->get_type() != state.camera.type)
         m_camera = new_camera(state);
+    // Otherwise, just update the state of the camera
     else
         m_camera->update_state(state);
 }
