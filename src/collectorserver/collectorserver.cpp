@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <sstream>
 
-CollectorServer::CollectorServer(StateVariables& state) : m_socket(m_service), m_message_count(0)
+CollectorServer::CollectorServer(const StateVariables& state) : m_socket(m_service), m_message_count(0)
 {
     m_socket.open(asio::ip::udp::v4());
     update_state(state);
@@ -16,12 +16,13 @@ CollectorServer::~CollectorServer()
 
 void CollectorServer::send(const std::string& data)
 {
+    // Assemble the message
     std::stringstream ss;
-
     ss << "{\"num\": \"" << m_message_count++ << "\", \"data\": \"" << data << "\"}";
     std::string message = ss.str();
     spdlog::info("Sending message to endpoints. Message: {}", message);
 
+    // Send the message to each collector
     for(auto& endpoint : m_endpoints)
     {
         std::stringstream ss;
@@ -36,8 +37,9 @@ void CollectorServer::send(const std::string& data)
     spdlog::info("Message sent to all endpoints");
 }
 
-void CollectorServer::update_state(StateVariables& state)
+void CollectorServer::update_state(const StateVariables& state)
 {
+    // Reset and refill the collectors
     m_endpoints.clear();
     m_endpoints.reserve(state.collector.collectors.size());
     for(auto& pair: state.collector.collectors)

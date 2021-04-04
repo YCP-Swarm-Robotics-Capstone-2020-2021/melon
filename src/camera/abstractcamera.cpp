@@ -4,7 +4,7 @@
 #include "../cmdhandler/constants/variables.h"
 #include <spdlog/spdlog.h>
 
-AbstractCamera::AbstractCamera(StateVariables& state) : m_type(state.camera.type)
+AbstractCamera::AbstractCamera(const StateVariables& state) : m_type(state.camera.type)
 {
 }
 
@@ -20,11 +20,13 @@ const std::string& AbstractCamera::get_source() const { return m_source; }
 const std::string& AbstractCamera::get_type() const { return m_type; }
 bool AbstractCamera::is_connected() const { return m_connected; }
 
-void AbstractCamera::update_state(StateVariables& state)
+void AbstractCamera::update_state(const StateVariables& state)
 {
+    // Make sure that somehow this camera wasn't replaced with a new one during a type change
     if(m_type != state.camera.type)
         throw std::runtime_error("Wrong camera type -- '" + m_type + "' != '" + state.camera.type + "'");
 
+    // if the camera source has changed
     if(m_source != state.camera.source)
     {
         m_source = state.camera.source;
@@ -37,6 +39,7 @@ void AbstractCamera::update_state(StateVariables& state)
         }
     }
 
+    // If the camera is connected and no longer should be, then disconnect
     if(m_connected && !state.camera.connected)
     {
         if(!do_disconnect())
@@ -44,6 +47,7 @@ void AbstractCamera::update_state(StateVariables& state)
             throw std::runtime_error("Camera failed to disconnect");
         }
     }
+    // If the camera is not connected and should be, then connect
     else if(!m_connected && state.camera.connected)
     {
         if(!do_connect())

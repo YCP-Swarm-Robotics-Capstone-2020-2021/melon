@@ -5,10 +5,6 @@ server::server(asio::io_context& io_context, short port, std::shared_ptr<GlobalS
     do_accept();
 }
 
-/**
- * Accept a new connection and make a shared pointer to a session instance. <br>
- * Then start the session and start reading/writing from/to tcp stream
- */
 void server::do_accept()
 {
     acceptor_.async_accept([this](asio::error_code ec, tcp::socket socket){

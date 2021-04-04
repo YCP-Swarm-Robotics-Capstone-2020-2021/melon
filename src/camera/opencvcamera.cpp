@@ -1,7 +1,7 @@
 #include "opencvcamera.h"
 #include <charconv>
 
-OpenCvCamera::OpenCvCamera(StateVariables& state) : AbstractCamera(state)
+OpenCvCamera::OpenCvCamera(const StateVariables& state) : AbstractCamera(state)
 {
 }
 
