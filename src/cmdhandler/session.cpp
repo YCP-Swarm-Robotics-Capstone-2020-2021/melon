@@ -42,7 +42,7 @@ void session::start()
     spdlog::info(socket_.remote_endpoint().address().to_string()+" connected");
     // Write out an initial '>' character so that user input stands out
     // do_write() also runs do_read(), so the program will begin listening after this is sent
-    do_write("> ", 2);
+    do_write("> ");
 }
 
 void session::do_read()
@@ -77,7 +77,7 @@ void session::do_read()
                                         }
                                         output << "> ";
                                         // Send the response
-                                        do_write(output.str(), output.str().length());
+                                        do_write(output.str());
                                     }else if(ec == asio::error::eof || ec == asio::error::connection_reset){
                                         spdlog::info(socket_.remote_endpoint().address().to_string()+" disconnected");
                                     }
@@ -91,11 +91,11 @@ void session::do_read()
  * @param msg message string to write out
  * @param length length of msg param
  */
-void session::do_write(std::string msg, std::size_t length)
+void session::do_write(std::string msg)
 {
     auto self(shared_from_this());
     std::shared_ptr<std::string> pmsg = std::make_shared<std::string>(msg);
-    asio::async_write(socket_, asio::buffer(pmsg->data(), length),
+    asio::async_write(socket_, asio::buffer(pmsg->data(), pmsg->length()),
                       [this, self, pmsg](asio::error_code ec, std::size_t length)
                       {
                           if (!ec)

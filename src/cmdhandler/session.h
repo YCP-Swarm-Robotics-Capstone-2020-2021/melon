@@ -72,7 +72,7 @@ private:
      * @param msg [in] Message string to write out
      * @param length [in] Size of message
      */
-    void do_write(std::string msg, std::size_t length);
+    void do_write(std::string msg);
 
     tcp::socket socket_;
     enum { max_length = 1024 };
