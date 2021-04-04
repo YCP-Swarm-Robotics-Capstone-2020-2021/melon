@@ -251,8 +251,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //save "connected" variable
         state_to_save.mutable_camera_system()->set_connected(current_state.camera.connected);
 
-        //save "url" string variable
-        state_to_save.mutable_camera_system()->set_url(current_state.camera.url);
+        //save "source" string variable
+        state_to_save.mutable_camera_system()->set_source(current_state.camera.source);
 
         //save "camera_matrix" cv::Mat
         cv::Mat camera_matrix = current_state.camera.camera_matrix;
@@ -324,8 +324,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //fill connected variable from loaded state
         current_state.camera.connected = state_to_load.camera_system().connected();
 
-        //fill url variable from loaded state
-        current_state.camera.url = state_to_load.camera_system().url();
+        //fill source variable from loaded state
+        current_state.camera.source = state_to_load.camera_system().source();
 
         //camera_matrix state variable, fill from loaded state
         std::vector<double> values;
@@ -496,8 +496,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         //add connected variable
         response << "\n    " << CameraSystemVars::CONNECTED << ": " << std::boolalpha << current_state.camera.connected;
 
-        //add url variable
-        response << "\n    url: "+current_state.camera.url;
+        //add source variable
+        response << "\n    " << CameraSystemVars::SOURCE << ": " << current_state.camera.source;
 
         //add camera_matrix variable
         response << "\n    camera_matrix: ";
@@ -522,7 +522,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         return response.str();
     }else if(tokens[0] == SET_CMD){
         if(tokens.size() < 3){
-            return "please provide a variable to set\n    ex: set camera url http://example.com";
+            return "please provide a variable to set\n    ex: set camera source http://example.com";
         }
 
         std::string variable = tokens[2];
@@ -566,12 +566,12 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 return "given value for variable +'"+variable+"' is not valid. acceptable values are 'true' and 'false'";
 
             return "camera "+variable+" set to '"+tokens[3]+"'";
-        }else if(variable == CameraSystemVars::URL){
+        }else if(variable == CameraSystemVars::SOURCE){
             if(tokens.size() != 4){
-                return "please provide a value for variable '"+variable+"'\n    ex: set camera url http://example.com";
+                return "please provide a value for variable '"+variable+"'\n    ex: set camera source http://example.com";
             }
-            current_state.camera.url = tokens[3];
-            return "camera url set to '"+tokens[3]+"'";
+            current_state.camera.source = tokens[3];
+            return "camera source set to '"+tokens[3]+"'";
         }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX){
             // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
             // cv::Mat to the chosen variable
@@ -640,7 +640,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         return "variable '"+variable+"' does not exist";
     }else if(tokens[0] == GET_CMD){
         if(tokens.size() < 3){
-            return "please provide a variable to get\n    ex: get camera url";
+            return "please provide a variable to get\n    ex: get camera source";
         }
 
         std::string variable = tokens[2];
@@ -649,8 +649,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             return variable + ": " + current_state.camera.type;
         }else if(variable == CameraSystemVars::CONNECTED){
             return variable+": " + (current_state.camera.connected ? "true" : "false");
-        }else if(variable == CameraSystemVars::URL){
-            return "url: "+current_state.camera.url;
+        }else if(variable == CameraSystemVars::SOURCE){
+            return variable+": "+current_state.camera.source;
         }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX) {
             std::stringstream response;
             response << variable << ": ";
@@ -681,14 +681,14 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         return "variable '"+variable+"' does not exist";
     }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() < 3){
-            return "please provide a variable to delete\n    ex: delete camera url";
+            return "please provide a variable to delete\n    ex: delete camera source";
         }
 
         std::string variable = tokens[2];
         current_state.camera = CameraSystem{};
 
-        if(variable == CameraSystemVars::URL){
-            current_state.camera.url = "";
+        if(variable == CameraSystemVars::SOURCE){
+            current_state.camera.source = "";
         }else if(variable == CameraSystemVars::CAM_MATRIX){
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
         }else if(variable == CameraSystemVars::DIST_MATRIX){
@@ -732,8 +732,8 @@ std::string command_handler::help_command(){
     response += "for the 'camera' system you can use the commands:\n";
     response += "    get, set, list (current camera variables), delete\n";
     response += "you can modify the following variables:\n";
-    response += "    type, connected, url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
-    response += "ex: 'get camera url' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera url'\n\n";
+    response += "    type, connected, source, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
+    response += "ex: 'get camera source' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera source'\n\n";
 
     response += "intended usage for each target system/variable will be clarified if used incorrectly.\n\n";
     return response;

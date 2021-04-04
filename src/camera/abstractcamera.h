@@ -27,7 +27,7 @@ public:
     bool video_postprocessing_enabled();
 
     const CameraCalib& get_camera_calib() const;
-    const std::string& get_connection_url() const;
+    const std::string& get_source() const;
     const std::string& get_type() const;
     bool is_connected() const;
 
@@ -55,7 +55,7 @@ private:
     bool m_connected {false};
 
     CameraCalib m_calib;
-    std::string m_connection_url;
+    std::string m_source;
     const std::string m_type;
 };
 
