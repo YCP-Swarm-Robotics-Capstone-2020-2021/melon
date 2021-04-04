@@ -1,7 +1,3 @@
-//
-// Created by tim on 2/27/21.
-//
-
 #ifndef MELON_STATEVARIABLES_H
 #define MELON_STATEVARIABLES_H
 
@@ -62,9 +58,19 @@ public:
     std::atomic_uint version;
 };
 
+/** @brief Classes that can be updated alongside a state change
+ *
+ * This is a pure-virtual abstract base class that classes can implement to signify that their internal state
+ * can change alongside a system state change (you can call ::update_state() on the object to update it instead of
+ * creating a new instance)
+ */
 class UpdateableState
 {
 public:
+    /** @brief Update the class instance to coincide with the program's current state
+     *
+     * @param state [in] Const reference to program state to update from
+     */
     virtual void update_state(StateVariables& state)=0;
 };
 

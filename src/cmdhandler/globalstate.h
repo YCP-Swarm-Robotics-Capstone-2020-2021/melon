@@ -47,7 +47,6 @@ public:
      */
     StateVariables get_state();
 
-    // Block current thread until the condition in func returns true
     /** @brief Wait until given callback function returns true
      *
      * This blocks the thread that this function is called within until the callback function returns true.

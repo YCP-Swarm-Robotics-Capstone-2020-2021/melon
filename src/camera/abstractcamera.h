@@ -97,8 +97,6 @@ public:
      */
     bool is_connected() const;
 
-    // Get a frame for processing from the camera
-    // Returns if frame was successfully retrieved
     /** @brief Get a frame from the camera
      *
      * This returns the most recent frame from the camera's video feed
