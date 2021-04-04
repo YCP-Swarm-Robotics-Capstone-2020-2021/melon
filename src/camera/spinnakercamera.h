@@ -4,7 +4,6 @@
 #include "abstractcamera.h"
 #include <Spinnaker.h>
 
-// A camera that uses Spinnaker SDK
 /** @brief A camera that uses Spinnaker SDK
  *
  * This class is for cameras that are interfaced with using Flir's Spinnaker SDK
@@ -12,7 +11,7 @@
 class SpinnakerCamera : public AbstractCamera
 {
 public:
-    explicit SpinnakerCamera(StateVariables& state);
+    explicit SpinnakerCamera(const StateVariables& state);
     ~SpinnakerCamera();
 
     bool get_frame(cv::Mat &frame) override;

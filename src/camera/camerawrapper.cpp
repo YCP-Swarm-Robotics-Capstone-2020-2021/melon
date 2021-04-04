@@ -12,7 +12,7 @@ AbstractCamera* CameraWrapper::operator->() const noexcept
     return m_camera.get();
 }
 
-void CameraWrapper::update_state(StateVariables& state)
+void CameraWrapper::update_state(const StateVariables& state)
 {
     // If the camera type has changed, create a new camera of the new type
     if(m_camera->get_type() != state.camera.type)
@@ -22,7 +22,7 @@ void CameraWrapper::update_state(StateVariables& state)
         m_camera->update_state(state);
 }
 
-std::unique_ptr<AbstractCamera> CameraWrapper::new_camera(StateVariables& state)
+std::unique_ptr<AbstractCamera> CameraWrapper::new_camera(const StateVariables& state)
 {
     std::unique_ptr<AbstractCamera> ptr;
     if(state.camera.type == CameraSystemVars::TYPE_OPENCV)

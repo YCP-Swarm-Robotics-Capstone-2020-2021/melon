@@ -111,14 +111,14 @@ public:
      * @param state [in] State to update class members from
      * @throws std::runtime_error if this camera type is different than the camera type in the state
      */
-    void update_state(StateVariables& state) override;
+    void update_state(const StateVariables& state) override;
 
 protected:
     /** @brief Creates new AbstractCamera instance
      *
-     * @param state [in] Reference to state that this camera should get its parameters from
+     * @param state [in] Const reference to state that this camera should get its parameters from
      */
-    explicit AbstractCamera(StateVariables& state);
+    explicit AbstractCamera(const StateVariables& state);
 
     /** @brief Establish connection to the camera
      *

@@ -71,7 +71,7 @@ public:
      *
      * @param state [in] Const reference to program state to update from
      */
-    virtual void update_state(StateVariables& state)=0;
+    virtual void update_state(const StateVariables& state)=0;
 };
 
 #endif //MELON_STATEVARIABLES_H

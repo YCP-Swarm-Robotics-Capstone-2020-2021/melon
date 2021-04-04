@@ -15,7 +15,7 @@ public:
     // Send the given data to all collectors
     void send(const std::string& data);
 
-    void update_state(StateVariables& state) override;
+    void update_state(const StateVariables& state) override;
 private:
     asio::io_service m_service;
     asio::ip::udp::socket m_socket;

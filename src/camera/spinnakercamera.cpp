@@ -2,7 +2,7 @@
 #include <SpinGenApi/SpinnakerGenApi.h>
 #include <spdlog/spdlog.h>
 
-SpinnakerCamera::SpinnakerCamera(StateVariables& state) :
+SpinnakerCamera::SpinnakerCamera(const StateVariables& state) :
         AbstractCamera(state),
         m_psys(Spinnaker::System::GetInstance()),
         m_pcam(nullptr)

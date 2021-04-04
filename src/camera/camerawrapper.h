@@ -44,7 +44,7 @@ public:
      *
      * @param state
      */
-    void update_state(StateVariables& state) override;
+    void update_state(const StateVariables& state) override;
 
 private:
     std::unique_ptr<AbstractCamera> m_camera;
@@ -58,7 +58,7 @@ private:
      * @return Smart pointer to AbstractCamera instance
      * @throws std::runtime_error if camera type in state is invalid
      */
-    static std::unique_ptr<AbstractCamera> new_camera(StateVariables& state);
+    static std::unique_ptr<AbstractCamera> new_camera(const StateVariables& state);
 };
 
 

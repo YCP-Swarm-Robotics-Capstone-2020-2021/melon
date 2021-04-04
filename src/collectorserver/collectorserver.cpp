@@ -37,7 +37,7 @@ void CollectorServer::send(const std::string& data)
     spdlog::info("Message sent to all endpoints");
 }
 
-void CollectorServer::update_state(StateVariables& state)
+void CollectorServer::update_state(const StateVariables& state)
 {
     // Reset and refill the collectors
     m_endpoints.clear();
