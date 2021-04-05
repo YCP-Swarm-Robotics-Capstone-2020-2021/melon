@@ -11,6 +11,9 @@ using ::testing::HasSubstr;
 StateVariables testing_state_camera_sys = StateVariables();
 std::vector<std::string> input_camera_sys;
 
+/**
+ * Check each variable gets set correctly into state and the values are correct
+ */
 TEST(CameraSystemSuite, Sets_Variables)
 {
     input_camera_sys.clear();
@@ -39,8 +42,8 @@ TEST(CameraSystemSuite, Sets_Variables)
     response = command_handler::do_command(input_camera_sys,testing_state_camera_sys);
 
     EXPECT_THAT(response, HasSubstr("'camera_matrix' variable set"));
-    ASSERT_EQ(testing_state_camera_sys.camera.camera_matrix.at<double>(0), 1);
-    ASSERT_EQ(testing_state_camera_sys.camera.camera_matrix.at<double>(3), 4);
+    ASSERT_DOUBLE_EQ(testing_state_camera_sys.camera.camera_matrix.at<double>(0), 1);
+    ASSERT_DOUBLE_EQ(testing_state_camera_sys.camera.camera_matrix.at<double>(3), 4);
     ASSERT_NE(testing_state_camera_sys.camera.camera_matrix.at<double>(9), 100);
 
     input_camera_sys.clear();
@@ -48,13 +51,16 @@ TEST(CameraSystemSuite, Sets_Variables)
     response = command_handler::do_command(input_camera_sys,testing_state_camera_sys);
 
     EXPECT_THAT(response, HasSubstr("'distortion_matrix' variable set"));
-    ASSERT_EQ(testing_state_camera_sys.camera.distortion_matrix.at<double>(0), 1);
-    ASSERT_EQ(testing_state_camera_sys.camera.distortion_matrix.at<double>(3), 4);
+    ASSERT_DOUBLE_EQ(testing_state_camera_sys.camera.distortion_matrix.at<double>(0), 1);
+    ASSERT_DOUBLE_EQ(testing_state_camera_sys.camera.distortion_matrix.at<double>(3), 4);
     ASSERT_NE(testing_state_camera_sys.camera.distortion_matrix.at<double>(4), 100);
 
     testing_state_camera_sys = StateVariables();
 }
 
+/**
+ * Check response includes correct variables/values when listing camera system
+ */
 TEST(CameraSystemSuite, Lists_Variables)
 {
     input_camera_sys.clear();
@@ -91,6 +97,14 @@ TEST(CameraSystemSuite, Lists_Variables)
     testing_state_camera_sys = StateVariables();
 }
 
+/**
+ * Check for:
+ *  - too many values given
+ *  - not enough values given
+ *  - non double value given
+ *
+ *  For the camera_matrix and the distortion_matrix variables
+ */
 TEST(CameraSystemSuite, Invalid_Matrices_Given)
 {
     //test if too many doubles given

@@ -11,6 +11,9 @@ using ::testing::HasSubstr;
 StateVariables testing_state_cmd_handler = StateVariables();
 std::vector<std::string> input_cmd_handler;
 
+/**
+ * Test that response indicates invalid target system given
+ */
 TEST(CmdHandlerSuite, Invalid_System)
 {
     input_cmd_handler.clear();
@@ -23,6 +26,9 @@ TEST(CmdHandlerSuite, Invalid_System)
     EXPECT_THAT(response, HasSubstr("not found"));
 }
 
+/**
+ * Test that response indicates no target system given
+ */
 TEST(CmdHandlerSuite, No_System_Given)
 {
     input_cmd_handler.clear();
@@ -33,6 +39,9 @@ TEST(CmdHandlerSuite, No_System_Given)
     ASSERT_EQ(response, "please provide a target system");
 }
 
+/**
+ * Test that response indicates invalid command given
+ */
 TEST(CmdHandlerSuite, Invalid_Command)
 {
     input_cmd_handler.clear();
@@ -45,6 +54,9 @@ TEST(CmdHandlerSuite, Invalid_Command)
     EXPECT_THAT(response, HasSubstr("not found"));
 }
 
+/**
+ * Test that command_handler handles an empty command string correctly
+ */
 TEST(CmdHandlerSuite, Empty_Command)
 {
     input_cmd_handler.clear();
