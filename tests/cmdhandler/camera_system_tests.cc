@@ -14,11 +14,11 @@ std::vector<std::string> input_camera_sys;
 TEST(CameraSystemSuite, Sets_Variables)
 {
     input_camera_sys.clear();
-    input_camera_sys.insert(input_camera_sys.end(), {"set", "camera", "url", "testingurl"});
+    input_camera_sys.insert(input_camera_sys.end(), {"set", "camera", "source", "testingurl"});
     std::string response = command_handler::do_command(input_camera_sys,testing_state_camera_sys);
 
-    EXPECT_THAT(response, HasSubstr("url set to"));
-    ASSERT_EQ(testing_state_camera_sys.camera.url, "testingurl");
+    EXPECT_THAT(response, HasSubstr("source set to"));
+    ASSERT_EQ(testing_state_camera_sys.camera.source, "testingurl");
 
     input_camera_sys.clear();
     input_camera_sys.insert(input_camera_sys.end(), {"set", "camera", "marker_dictionary", "6"});
@@ -58,7 +58,7 @@ TEST(CameraSystemSuite, Sets_Variables)
 TEST(CameraSystemSuite, Lists_Variables)
 {
     input_camera_sys.clear();
-    input_camera_sys.insert(input_camera_sys.end(), {"set", "camera", "url", "testingurl"});
+    input_camera_sys.insert(input_camera_sys.end(), {"set", "camera", "source", "testingurl"});
     command_handler::do_command(input_camera_sys,testing_state_camera_sys);
 
     input_camera_sys.clear();
@@ -81,7 +81,7 @@ TEST(CameraSystemSuite, Lists_Variables)
     input_camera_sys.insert(input_camera_sys.end(), {"list", "camera"});
     std::string response = command_handler::do_command(input_camera_sys,testing_state_camera_sys);
 
-    EXPECT_THAT(response, HasSubstr("url: testingurl"));
+    EXPECT_THAT(response, HasSubstr("source: testingurl"));
     EXPECT_THAT(response, HasSubstr("marker_dictionary: 6"));
     EXPECT_THAT(response, HasSubstr("camera_matrix: 1,2,3,4,5,6,7,8,9"));
     EXPECT_THAT(response, HasSubstr("distortion_matrix: 1,2,3,4,5,"));
