@@ -25,13 +25,6 @@
 #include <sstream>
 #include <cctype>
 
-/**
- * Do a command by calling a specific target system depending on user command string.
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::do_command(const std::vector<std::string>& tokens, StateVariables& current_state){
     std::string command = tokens[0];
 
@@ -64,13 +57,6 @@ std::string command_handler::do_command(const std::vector<std::string>& tokens, 
     }
 }
 
-/**
- * Tokenize (split) a value string by commas. <br>
- * Used for when a target system takes a value parameter as a comma separated list.
- *
- * @param values value string to tokenize
- * @return a vector of strings
- */
 std::vector<std::string> command_handler::tokenize_values_by_commas(const std::string& values){
     std::vector<std::string> tokens;
 
@@ -87,13 +73,6 @@ std::vector<std::string> command_handler::tokenize_values_by_commas(const std::s
     return tokens;
 }
 
-/**
- * Send a vector<string> (doubles) to a cv::Mat. <br>
- * Can throw an error if a non double value is given (std::invalid_argument)
- *
- * @param values vector<string> of values to put in matrix
- * @return matrix of values given in 'values'
- */
 cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& values, const int rows){
     std::vector<double> values_as_double;
     for(int i = 0; i < values.size(); i++){
@@ -103,12 +82,6 @@ cv::Mat command_handler::values_by_comma_to_mat(const std::vector<std::string>& 
     return return_mat.reshape(1,rows).clone();
 }
 
-/**
- * Build a "x,x,x,x," list based on a matrix's values
- *
- * @param matrix matrix with values to add to return string
- * @return string for server response
- */
 std::string command_handler::build_matrix_string(const cv::Mat& matrix){
     std::stringstream response;
 
@@ -122,15 +95,6 @@ std::string command_handler::build_matrix_string(const cv::Mat& matrix){
     return response.str();
 }
 
-/**
- * Modifies the 'robots' state variable. <br>
- * A robot has a name and a collection of 4 marker int ids. <br>
- * system functions: set, get, list, and delete robots
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::robot_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == LIST_CMD){
         std::string response = "Current robots:";
@@ -202,13 +166,6 @@ std::string command_handler::robot_system(const std::vector<std::string>& tokens
     }
 }
 
-/**
- * Saves and loads current state configurations to binary files in the 'states/' directory
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::state_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(!std::filesystem::exists(StateSystemVars::SAVE_DIR)){
         std::error_code ec;
@@ -251,8 +208,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //save "connected" variable
         state_to_save.mutable_camera_system()->set_connected(current_state.camera.connected);
 
-        //save "url" string variable
-        state_to_save.mutable_camera_system()->set_url(current_state.camera.url);
+        //save "source" string variable
+        state_to_save.mutable_camera_system()->set_source(current_state.camera.source);
 
         //save "camera_matrix" cv::Mat
         cv::Mat camera_matrix = current_state.camera.camera_matrix;
@@ -324,8 +281,8 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         //fill connected variable from loaded state
         current_state.camera.connected = state_to_load.camera_system().connected();
 
-        //fill url variable from loaded state
-        current_state.camera.url = state_to_load.camera_system().url();
+        //fill source variable from loaded state
+        current_state.camera.source = state_to_load.camera_system().source();
 
         //camera_matrix state variable, fill from loaded state
         std::vector<double> values;
@@ -392,15 +349,6 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
     }
 }
 
-/**
- * Modifies the 'collectors' state variable. <br>
- * A collector has a name and an ip address associated with it, collectors receive data via udp from camera. <br>
- * system functions: set, get, list, and delete collectors
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::collector_system(const std::vector<std::string>& tokens, StateVariables& current_state) {
     if(tokens[0] == LIST_CMD){
         std::stringstream response;
@@ -477,14 +425,6 @@ std::string command_handler::collector_system(const std::vector<std::string>& to
     }
 }
 
-/**
- * Modifies variables in the 'CameraSystem' struct in 'Variables' class. <br>
- * system functions (on variables mentioned above): set, get, list, and delete
- *
- * @param tokens tokenized vector version of user command
- * @param current_state server's current state struct
- * @return response to user command as string
- */
 std::string command_handler::camera_system(const std::vector<std::string>& tokens, StateVariables& current_state){
     if(tokens[0] == LIST_CMD){
         std::stringstream response;
@@ -496,8 +436,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         //add connected variable
         response << "\n    " << CameraSystemVars::CONNECTED << ": " << std::boolalpha << current_state.camera.connected;
 
-        //add url variable
-        response << "\n    url: "+current_state.camera.url;
+        //add source variable
+        response << "\n    " << CameraSystemVars::SOURCE << ": " << current_state.camera.source;
 
         //add camera_matrix variable
         response << "\n    camera_matrix: ";
@@ -522,7 +462,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         return response.str();
     }else if(tokens[0] == SET_CMD){
         if(tokens.size() < 3){
-            return "please provide a variable to set\n    ex: set camera url http://example.com";
+            return "please provide a variable to set\n    ex: set camera source http://example.com";
         }
 
         std::string variable = tokens[2];
@@ -535,7 +475,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 value = tokens[3];
                 std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
             }
-            spdlog::info(value);
+
             if(tokens.size() != 4 || std::find(
                     CameraSystemVars::TYPES.begin(),
                     CameraSystemVars::TYPES.end(),
@@ -566,12 +506,12 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 return "given value for variable +'"+variable+"' is not valid. acceptable values are 'true' and 'false'";
 
             return "camera "+variable+" set to '"+tokens[3]+"'";
-        }else if(variable == CameraSystemVars::URL){
+        }else if(variable == CameraSystemVars::SOURCE){
             if(tokens.size() != 4){
-                return "please provide a value for variable '"+variable+"'\n    ex: set camera url http://example.com";
+                return "please provide a value for variable '"+variable+"'\n    ex: set camera source http://example.com";
             }
-            current_state.camera.url = tokens[3];
-            return "camera url set to '"+tokens[3]+"'";
+            current_state.camera.source = tokens[3];
+            return "camera source set to '"+tokens[3]+"'";
         }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX){
             // since camera_matrix/distortion_matrix are the same data type/format, just use a conditional to assign a
             // cv::Mat to the chosen variable
@@ -640,7 +580,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         return "variable '"+variable+"' does not exist";
     }else if(tokens[0] == GET_CMD){
         if(tokens.size() < 3){
-            return "please provide a variable to get\n    ex: get camera url";
+            return "please provide a variable to get\n    ex: get camera source";
         }
 
         std::string variable = tokens[2];
@@ -649,8 +589,8 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             return variable + ": " + current_state.camera.type;
         }else if(variable == CameraSystemVars::CONNECTED){
             return variable+": " + (current_state.camera.connected ? "true" : "false");
-        }else if(variable == CameraSystemVars::URL){
-            return "url: "+current_state.camera.url;
+        }else if(variable == CameraSystemVars::SOURCE){
+            return variable+": "+current_state.camera.source;
         }else if(variable == CameraSystemVars::CAM_MATRIX || variable == CameraSystemVars::DIST_MATRIX) {
             std::stringstream response;
             response << variable << ": ";
@@ -681,14 +621,14 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         return "variable '"+variable+"' does not exist";
     }else if(tokens[0] == DELETE_CMD){
         if(tokens.size() < 3){
-            return "please provide a variable to delete\n    ex: delete camera url";
+            return "please provide a variable to delete\n    ex: delete camera source";
         }
 
         std::string variable = tokens[2];
         current_state.camera = CameraSystem{};
 
-        if(variable == CameraSystemVars::URL){
-            current_state.camera.url = "";
+        if(variable == CameraSystemVars::SOURCE){
+            current_state.camera.source = "";
         }else if(variable == CameraSystemVars::CAM_MATRIX){
             current_state.camera.camera_matrix = cv::Mat::zeros(current_state.camera.camera_matrix.size(), current_state.camera.camera_matrix.type());;
         }else if(variable == CameraSystemVars::DIST_MATRIX){
@@ -707,11 +647,6 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
     }
 }
 
-/**
- * Display available target systems/commands to user
- *
- * @return help string
- */
 std::string command_handler::help_command(){
     std::string response = "current target systems:\n";
     response += "    robot, state, collector, camera\n\n";
@@ -732,8 +667,8 @@ std::string command_handler::help_command(){
     response += "for the 'camera' system you can use the commands:\n";
     response += "    get, set, list (current camera variables), delete\n";
     response += "you can modify the following variables:\n";
-    response += "    type, connected, url, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
-    response += "ex: 'get camera url' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera url'\n\n";
+    response += "    type, connected, source, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
+    response += "ex: 'get camera source' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera source'\n\n";
 
     response += "intended usage for each target system/variable will be clarified if used incorrectly.\n\n";
     return response;

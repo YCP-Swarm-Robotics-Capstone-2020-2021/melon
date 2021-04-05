@@ -2,7 +2,7 @@
 #include <SpinGenApi/SpinnakerGenApi.h>
 #include <spdlog/spdlog.h>
 
-SpinnakerCamera::SpinnakerCamera(StateVariables& state) :
+SpinnakerCamera::SpinnakerCamera(const StateVariables& state) :
         AbstractCamera(state),
         m_psys(Spinnaker::System::GetInstance()),
         m_pcam(nullptr)
@@ -61,7 +61,7 @@ bool SpinnakerCamera::do_connect()
         if(Spinnaker::GenApi::IsAvailable(pserial) && Spinnaker::GenApi::IsReadable(pserial))
         {
             Spinnaker::GenICam::gcstring serial = pserial->GetValue();
-            if(serial == get_connection_url().c_str())
+            if(serial == get_source().c_str())
             {
                 m_pcam = pcam;
                 break;
@@ -71,8 +71,7 @@ bool SpinnakerCamera::do_connect()
 
     if(m_pcam == nullptr)
     {
-        // TODO: Insert serial number
-        spdlog::critical("Camera with serial number '{}' not found", "");
+        spdlog::critical("Camera with serial number '{}' not found", get_source());
         return false;
     }
 
@@ -90,7 +89,6 @@ bool SpinnakerCamera::do_connect()
     // Get camera nodes (settings)
     Spinnaker::GenApi::INodeMap& node_map = m_pcam->GetNodeMap();
 
-    // TODO: Check return type and do something if false
     // Enable "Continuous" mode so that an unspecified amount of frames can be read continuously
     if(!set_node_val(node_map, "AcquisitionMode", "Continuous"))
     {
@@ -103,9 +101,6 @@ bool SpinnakerCamera::do_connect()
         spdlog::error("Failed to set camera 'PixelFormat' to 'BGR8'");
         return false;
     }
-
-    // TODO: Disable heartbeat in debug? The example does this, but I'm not sure if it's referring to debugging
-    //      the hardware in some way or just having the executable compiled in debug mode
 
     // Start video capture
     m_pcam->BeginAcquisition();

@@ -19,9 +19,20 @@
 
 const std::string LOG_DIR = "logs/";
 
-void update_state_variables(GlobalState& state);
+/** @brief Callback function for the thread that the command handler runs in
+ *
+ * @param argc [in] argc parameter from main func
+ * @param argv [in] argv parameter from main func
+ * @param state [in] Shared pointer to the global state
+ */
 void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> state);
+
+/** @brief Callback function for the thread that the camera runs in
+ *
+ * @param state Shared pointer to the global state
+ */
 void camera_thread_func(std::shared_ptr<GlobalState> state);
+
 int main(int argc, char** argv)
 {
     //start logging
@@ -68,26 +79,31 @@ int main(int argc, char** argv)
 void command_thread_func(int argc, char** argv, std::shared_ptr<GlobalState> state)
 {
     try{
+        // Make sure that the user has specified a port for the server to run on
         if (argc != 2){
             spdlog::critical("arg1: <port>");
             return;
         }
 
+        // Start the server
         asio::io_context io_context;
         server s(io_context, std::atoi(argv[1]), state);
         io_context.run();
     }
     catch (std::exception& e){
-        spdlog::critical("Exception: %s", e.what());
+        spdlog::critical("Exception in command handler thread: \n{}", e.what());
     }
 }
 
 void camera_thread_func(std::shared_ptr<GlobalState> state)
 {
-    StateVariables local_variables;
-    state->apply(local_variables);
+    // Wait for camera to be connected and necessary properties present
+    state->wait([](const StateVariables& state)
+                {
+                    return state.camera.connected && !state.camera.type.empty() && !state.camera.source.empty();
+                });
 
-    // TODO: Wait until camera connected is true
+    StateVariables local_variables = state->get_state();
 
     try
     {
@@ -97,24 +113,32 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
         bool loop = true;
         cv::Mat frame;
+        // Main frame-grabber loop
         while (loop)
         {
             // Apply any changes to state variables
             if(state->apply(local_variables))
             {
-                server.update_state(local_variables);
-                camera.update_state(local_variables);
-
                 if(!local_variables.camera.connected)
                 {
-                    // TODO: Wait until connected is true
+                    // Wait for camera to be connected and necessary properties present
+                    state->wait([](const StateVariables& state)
+                                {
+                                    return state.camera.connected && !state.camera.type.empty() && !state.camera.source.empty();
+                                });
+                    // Update the local variables
+                    state->apply(local_variables);
                 }
+
+                // Update the server and camera with the new state variables
+                server.update_state(local_variables);
+                camera.update_state(local_variables);
             }
 
             if(camera->get_frame(frame))
             {
                 cv::resize(frame, frame, cv::Size(1280, 720));
-                cv::imshow("spinnaker cam", frame);
+                cv::imshow("camera", frame);
             }
 
             // TODO: Actually generate/get data
@@ -127,6 +151,6 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     }
     catch (std::exception& e)
     {
-        spdlog::critical("Exception: \n{}", e.what());
+        spdlog::critical("Exception in camera thread: \n{}", e.what());
     }
 }

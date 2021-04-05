@@ -5,7 +5,7 @@ namespace CameraSystemVars
 {
     constexpr char TYPE[] = "type";
     constexpr char CONNECTED[] = "connected";
-    constexpr char URL[] = "url";
+    constexpr char SOURCE[] = "source";
     constexpr char CAM_MATRIX[] = "camera_matrix";
     constexpr char DIST_MATRIX[] = "distortion_matrix";
     constexpr char MARKER_DICT[] = "marker_dictionary";

@@ -3,11 +3,15 @@
 
 #include <opencv2/videoio.hpp>
 #include "abstractcamera.h"
-/// A camera compatible with OpenCV's "VideoCapture" class
+
+/** @brief A camera that uses OpenCV's VideoCapture class
+ *
+ * This class is for camera's that are interfaced with using cv::VideoCapture
+ */
 class OpenCvCamera : public AbstractCamera
 {
 public:
-    explicit OpenCvCamera(StateVariables& state);
+    explicit OpenCvCamera(const StateVariables& state);
 
     bool get_frame(cv::Mat& frame) override;
 
