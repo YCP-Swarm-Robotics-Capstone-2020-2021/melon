@@ -90,7 +90,7 @@ file(GLOB_RECURSE TESTS
         )
 
 add_executable(AllTests ${PROTO_SRCS} ${PROTO_HDRS} ${TESTS})
-target_link_libraries(AllTests gtest gtest_main gmock ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog stdc++fs)
+target_link_libraries(AllTests gtest gtest_main gmock ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog)
 add_test(NAME AllTests COMMAND AllTests)
 
 # Add the compile directory to the include directories so that the generated protobuf classes can be found
@@ -102,6 +102,7 @@ target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog 
 # If MSVC compiler is not being used, add stdc++fs library
 if(NOT MSVC)
     target_link_libraries(melon stdc++fs)
+    target_link_libraries(AllTests stdc++fs)
 endif()
 
 # If on windows, add a special compiler definition for Asio and include Windows socket libraries for Asio
