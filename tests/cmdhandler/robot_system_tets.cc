@@ -9,16 +9,14 @@
 using ::testing::HasSubstr;
 
 StateVariables testing_state_robot_sys = StateVariables();
-std::vector<std::string> input_robot_sys;
 
 /**
  * Check that a robot gets set correctly with correct values
  */
 TEST(RobotSystemSuite, Sets_Robot)
 {
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r1", "1,2,3,4"});
-    std::string response = command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    //set a robot value to check
+    std::string response = command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state_robot_sys);
 
     //check that response is correct and size of r1's value is correct
     EXPECT_THAT(response, HasSubstr("added with marker values"));
@@ -37,16 +35,11 @@ TEST(RobotSystemSuite, Sets_Robot)
  */
 TEST(RobotSystemSuite, Gets_Robot)
 {
-    input_robot_sys.clear();
-
     //insert initial robot
-    input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r1", "1,2,3,4"});
-    command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state_robot_sys);
 
     //get the robot back
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"get", "robot", "r1"});
-    std::string response = command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    std::string response = command_handler::do_command({"get", "robot", "r1"}, testing_state_robot_sys);
 
     //expect the robot's name/values to be in response string
     EXPECT_THAT(response, HasSubstr("r1:"));
@@ -61,14 +54,10 @@ TEST(RobotSystemSuite, Gets_Robot)
 TEST(RobotSystemSuite, Deletes_Robot)
 {
     //set initial robot
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r1", "1,2,3,4"});
-    command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state_robot_sys);
 
     //delete said robot
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"delete", "robot", "r1"});
-    std::string response = command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    std::string response = command_handler::do_command({"delete", "robot", "r1"}, testing_state_robot_sys);
 
     //expect that response string indicates removal of robot, and the 'robots' map is empty
     EXPECT_THAT(response, HasSubstr("has been removed"));
@@ -83,18 +72,11 @@ TEST(RobotSystemSuite, Deletes_Robot)
 TEST(RobotSystemSuite, Lists_Robots)
 {
     //insert two robots
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r1", "1,2,3,4"});
-    command_handler::do_command(input_robot_sys, testing_state_robot_sys);
-
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r2", "10,2,1,5"});
-    command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state_robot_sys);
+    command_handler::do_command({"set", "robot", "r2", "10,2,1,5"}, testing_state_robot_sys);
 
     //list out the said robots
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"list", "robot"});
-    std::string response = command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    std::string response = command_handler::do_command({"list", "robot"}, testing_state_robot_sys);
 
     //expect the robots' names/values to be in response string
     EXPECT_THAT(response, HasSubstr("r1:"));
@@ -111,9 +93,7 @@ TEST(RobotSystemSuite, Lists_Robots)
 TEST(RobotSystemSuite, Invalid_Markers_Given)
 {
     //give a non int value as a marker id, expect that response indicates invalid value given
-    input_robot_sys.clear();
-    input_robot_sys.insert(input_robot_sys.end(), {"set", "robot", "r1", "1,2,test,4"});
-    std::string response = command_handler::do_command(input_robot_sys, testing_state_robot_sys);
+    std::string response = command_handler::do_command({"set", "robot", "r1", "1,2,test,4"}, testing_state_robot_sys);
 
     EXPECT_THAT(response, HasSubstr("please provide"));
     EXPECT_THAT(response, HasSubstr("integers"));

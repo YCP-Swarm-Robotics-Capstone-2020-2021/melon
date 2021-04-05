@@ -9,7 +9,6 @@
 using ::testing::HasSubstr;
 
 StateVariables testing_state_collector_sys = StateVariables();
-std::vector<std::string> input_collector_sys;
 
 /**
  * Check a collector gets set correctly and state values are correct
@@ -17,9 +16,7 @@ std::vector<std::string> input_collector_sys;
 TEST(CollectorSystemSuite, Sets_Collector)
 {
     //insert initial collector
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs", "127.0.0.1", "5000"});
-    std::string response = command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state_collector_sys);
 
     //expect that response string includes correct ip/port/name, also that state has correct values
     EXPECT_THAT(response, HasSubstr("added with ip"));
@@ -35,13 +32,10 @@ TEST(CollectorSystemSuite, Sets_Collector)
 TEST(CollectorSystemSuite, Gets_Collector)
 {
     //insert initial collector
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs", "127.0.0.1", "5000"});
-    command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state_collector_sys);
 
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"get", "collector", "gcs"});
-    std::string response = command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    //do the get command on collector that was just made
+    std::string response = command_handler::do_command({"get", "collector", "gcs"}, testing_state_collector_sys);
 
     //expect that response string includes given values
     EXPECT_THAT(response, HasSubstr("gcs:"));
@@ -57,14 +51,10 @@ TEST(CollectorSystemSuite, Gets_Collector)
 TEST(CollectorSystemSuite, Deletes_Collector)
 {
     //insert initial collector
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs", "127.0.0.1", "5000"});
-    command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state_collector_sys);
 
     //delete said collector we just added
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"delete", "collector", "gcs"});
-    std::string response = command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    std::string response = command_handler::do_command({"delete", "collector", "gcs"}, testing_state_collector_sys);
 
     //expect that response string indicates removal, and that state 'collectors' map is empty
     EXPECT_THAT(response, HasSubstr("has been removed"));
@@ -77,18 +67,11 @@ TEST(CollectorSystemSuite, Deletes_Collector)
 TEST(CollectorSystemSuite, Lists_Collectors)
 {
     //add initial collectors
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs", "127.0.0.1", "5000"});
-    command_handler::do_command(input_collector_sys, testing_state_collector_sys);
-
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs2", "10.1.1.1", "8080"});
-    command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state_collector_sys);
+    command_handler::do_command({"set", "collector", "gcs2", "10.1.1.1", "8080"}, testing_state_collector_sys);
 
     //list said collectors
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"list", "collector"});
-    std::string response = command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    std::string response = command_handler::do_command({"list", "collector"}, testing_state_collector_sys);
 
     //expect that response string includes correct values/ports/names
     EXPECT_THAT(response, HasSubstr("gcs:"));
@@ -107,9 +90,7 @@ TEST(CollectorSystemSuite, Lists_Collectors)
 TEST(CollectorSystemSuite, Invalid_IP_Given)
 {
     //insert initial collector with invalid ip
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs", "127.0.1", "5000"});
-    std::string response = command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.1", "5000"}, testing_state_collector_sys);
 
     //expect that response string indicates invalid ip address
     EXPECT_THAT(response, HasSubstr("valid ipv4 address"));
@@ -123,9 +104,7 @@ TEST(CollectorSystemSuite, Invalid_IP_Given)
 TEST(CollectorSystemSuite, Invalid_Port_Given)
 {
     //insert initial collector with invalid port
-    input_collector_sys.clear();
-    input_collector_sys.insert(input_collector_sys.end(), {"set", "collector", "gcs", "127.0.0.1", "70000"});
-    std::string response = command_handler::do_command(input_collector_sys, testing_state_collector_sys);
+    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "70000"}, testing_state_collector_sys);
 
     //expect that response string indicates invalid port
     EXPECT_THAT(response, HasSubstr("valid port number"));

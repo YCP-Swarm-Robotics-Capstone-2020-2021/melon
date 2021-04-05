@@ -9,19 +9,16 @@
 using ::testing::HasSubstr;
 
 StateVariables testing_state_cmd_handler = StateVariables();
-std::vector<std::string> input_cmd_handler;
 
 /**
  * Test that response indicates invalid target system given
  */
 TEST(CmdHandlerSuite, Invalid_System)
 {
-    input_cmd_handler.clear();
-    input_cmd_handler.push_back("set");
-    input_cmd_handler.push_back("wrongSystem");
+    //do a command with the wrong system
+    std::string response = command_handler::do_command({"set", "wrongSystem"}, testing_state_cmd_handler);
 
-    std::string response = command_handler::do_command(input_cmd_handler, testing_state_cmd_handler);
-
+    //check that response string indicates error
     EXPECT_THAT(response, HasSubstr("target system:"));
     EXPECT_THAT(response, HasSubstr("not found"));
 }
@@ -31,11 +28,10 @@ TEST(CmdHandlerSuite, Invalid_System)
  */
 TEST(CmdHandlerSuite, No_System_Given)
 {
-    input_cmd_handler.clear();
-    input_cmd_handler.push_back("set");
+    //do a command with no system given
+    std::string response = command_handler::do_command({"set"}, testing_state_cmd_handler);
 
-    std::string response = command_handler::do_command(input_cmd_handler, testing_state_cmd_handler);
-
+    //check that response string indicates error
     ASSERT_EQ(response, "please provide a target system");
 }
 
@@ -44,12 +40,10 @@ TEST(CmdHandlerSuite, No_System_Given)
  */
 TEST(CmdHandlerSuite, Invalid_Command)
 {
-    input_cmd_handler.clear();
-    input_cmd_handler.push_back("command");
-    input_cmd_handler.push_back("robot");
+    //do command with invalid command (first element in tokens vector)
+    std::string response = command_handler::do_command({"command", "root"}, testing_state_cmd_handler);
 
-    std::string response = command_handler::do_command(input_cmd_handler, testing_state_cmd_handler);
-
+    //check that response string indicates invalid command given
     EXPECT_THAT(response, HasSubstr("command:"));
     EXPECT_THAT(response, HasSubstr("not found"));
 }
@@ -59,10 +53,10 @@ TEST(CmdHandlerSuite, Invalid_Command)
  */
 TEST(CmdHandlerSuite, Empty_Command)
 {
-    input_cmd_handler.clear();
+    //do command with empty token vector
+    std::string response = command_handler::do_command({""}, testing_state_cmd_handler);
 
-    std::string response = command_handler::do_command(input_cmd_handler, testing_state_cmd_handler);
-
+    //check that response handles correctly
     EXPECT_THAT(response, HasSubstr("command:"));
     EXPECT_THAT(response, HasSubstr("not found"));
 }

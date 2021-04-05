@@ -9,7 +9,6 @@
 using ::testing::HasSubstr;
 
 StateVariables testing_state_state_sys = StateVariables();
-std::vector<std::string> input_state_sys;
 
 /**
  * Test that current state gets saved, deleted, and loaded correctly
@@ -17,29 +16,18 @@ std::vector<std::string> input_state_sys;
 TEST(StateSystemSuite, Saves_Deletes_Loads)
 {
     //setup state to be saved, set a variable from each target system
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"set", "camera", "camera_matrix", "1,2,3,4,5,6,7,8,9"});
-    command_handler::do_command(input_state_sys,testing_state_state_sys);
+    command_handler::do_command({"set", "camera", "camera_matrix", "1,2,3,4,5,6,7,8,9"},testing_state_state_sys);
+    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"},testing_state_state_sys);
+    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"},testing_state_state_sys);
 
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"set", "robot", "r1", "1,2,3,4"});
-    command_handler::do_command(input_state_sys,testing_state_state_sys);
-
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"set", "collector", "gcs", "127.0.0.1", "5000"});
-    command_handler::do_command(input_state_sys,testing_state_state_sys);
-
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"save", "state", "tests_state"});
-    std::string response = command_handler::do_command(input_state_sys,testing_state_state_sys);
+    //send save command
+    std::string response = command_handler::do_command({"save", "state", "tests_state"},testing_state_state_sys);
 
     //expect that response string indicates state has been saved
     EXPECT_THAT(response, HasSubstr("current state saved"));
 
     //test deleting current state using 'current' keyword
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"delete", "state", "current"});
-    response = command_handler::do_command(input_state_sys,testing_state_state_sys);
+    response = command_handler::do_command({"delete", "state", "current"},testing_state_state_sys);
 
     //expect that response string indicates state has been cleared, and the current state reflects empty values
     EXPECT_THAT(response, HasSubstr("has been cleared"));
@@ -48,9 +36,7 @@ TEST(StateSystemSuite, Saves_Deletes_Loads)
     ASSERT_EQ(testing_state_state_sys.camera.camera_matrix.empty(), true);
 
     //test loading previously saved state
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"load", "state", "tests_state"});
-    response = command_handler::do_command(input_state_sys,testing_state_state_sys);
+    response = command_handler::do_command({"load", "state", "tests_state"},testing_state_state_sys);
 
     //expect that response string indicates state has been loaded, and the current state reflects correct values
     //uses previously saved state 'tests_state'
@@ -62,9 +48,7 @@ TEST(StateSystemSuite, Saves_Deletes_Loads)
     ASSERT_EQ(testing_state_state_sys.collector.collectors.at("gcs").address().to_string(), "127.0.0.1");
 
     //test listing state
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"list", "state"});
-    response = command_handler::do_command(input_state_sys, testing_state_state_sys);
+    response = command_handler::do_command({"list", "state"}, testing_state_state_sys);
 
     //expect that response indicates the 'tests_state' at least
     EXPECT_THAT(response, HasSubstr("Saved states:"));
@@ -76,9 +60,7 @@ TEST(StateSystemSuite, Saves_Deletes_Loads)
  */
 TEST(StateSystemSuite, Invalid_State_Given_To_Delete)
 {
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"delete", "state", "doesnt_exist"});
-    std::string response = command_handler::do_command(input_state_sys,testing_state_state_sys);
+    std::string response = command_handler::do_command({"delete", "state", "doesnt_exist"},testing_state_state_sys);
     EXPECT_THAT(response, HasSubstr("does not exist"));
 }
 
@@ -86,8 +68,6 @@ TEST(StateSystemSuite, Invalid_State_Given_To_Delete)
  * Test that saving a state with keyword 'current' fails, and response string indicates that
  */
 TEST(StateSystemSuite, Invalid_Save_Using_Keyword) {
-    input_state_sys.clear();
-    input_state_sys.insert(input_state_sys.end(), {"save", "state", "current"});
-    std::string response = command_handler::do_command(input_state_sys,testing_state_state_sys);
+    std::string response = command_handler::do_command({"save", "state", "current"},testing_state_state_sys);
     EXPECT_THAT(response, HasSubstr("cannot be used"));
 }
