@@ -1,1 +1,8 @@
 * text eol=lf
+
+*.jpg binary
+*.png binary
+*.psd binary
+*.svg binary
+calibrationImgs/** linguist-vendored
+arucoMarkers/** linguist-vendored

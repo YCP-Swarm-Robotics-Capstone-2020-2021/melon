@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+message MarkerIds
+{
+  repeated int32 ids = 1;
+}
+
+message RobotSys
+{
+  map<string, MarkerIds> robots = 1;
+}
+
+message Endpoint
+{
+  string address = 1;
+  int32 port = 2;
+}
+
+message CollectorSys
+{
+  map<string, Endpoint> collectors = 1;
+}
+
+message CameraSys
+{
+  string type = 1;
+  bool connected = 2;
+  string source = 3;
+  repeated double camera_matrix = 4;
+  repeated double distortion_matrix = 5;
+  int32 marker_dictionary = 6;
+  map<string, bool> options = 7;
+}
+
+message State
+{
+  RobotSys robot_system = 1;
+  CollectorSys collector_system = 2;
+  CameraSys camera_system = 3;
+}
