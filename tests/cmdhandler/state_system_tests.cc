@@ -55,8 +55,8 @@ TEST_F(StateSystemSuite, Saves_Deletes_Loads)
     //uses previously saved state 'tests_state'
     EXPECT_THAT(response, HasSubstr("current state loaded"));
     ASSERT_EQ(testing_state.robot.robots.at("r1").size(), 4);
-    ASSERT_EQ(testing_state.camera.camera_matrix.at<double>(0), 1);
-    ASSERT_EQ(testing_state.camera.camera_matrix.at<double>(3), 4);
+    ASSERT_DOUBLE_EQ(testing_state.camera.camera_matrix.at<double>(0), 1);
+    ASSERT_DOUBLE_EQ(testing_state.camera.camera_matrix.at<double>(3), 4);
     ASSERT_EQ(testing_state.collector.collectors.at("gcs").port(), 5000);
     ASSERT_EQ(testing_state.collector.collectors.at("gcs").address().to_string(), "127.0.0.1");
 
