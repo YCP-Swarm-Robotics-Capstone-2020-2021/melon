@@ -8,15 +8,28 @@
 
 using ::testing::HasSubstr;
 
-StateVariables testing_state_cmd_handler = StateVariables();
+class CmdHandlerSuite : public testing::Test{
+protected:
+    static void SetUpTestSuite() {
+        testing_state = StateVariables();
+    }
+
+    void TearDown(){
+        testing_state = StateVariables();
+    }
+public:
+    static StateVariables testing_state;
+};
+
+StateVariables CmdHandlerSuite::testing_state;
 
 /**
  * Test that response indicates invalid target system given
  */
-TEST(CmdHandlerSuite, Invalid_System)
+TEST_F(CmdHandlerSuite, Invalid_System)
 {
     //do a command with the wrong system
-    std::string response = command_handler::do_command({"set", "wrongSystem"}, testing_state_cmd_handler);
+    std::string response = command_handler::do_command({"set", "wrongSystem"}, testing_state);
 
     //check that response string indicates error
     EXPECT_THAT(response, HasSubstr("target system:"));
@@ -26,10 +39,10 @@ TEST(CmdHandlerSuite, Invalid_System)
 /**
  * Test that response indicates no target system given
  */
-TEST(CmdHandlerSuite, No_System_Given)
+TEST_F(CmdHandlerSuite, No_System_Given)
 {
     //do a command with no system given
-    std::string response = command_handler::do_command({"set"}, testing_state_cmd_handler);
+    std::string response = command_handler::do_command({"set"}, testing_state);
 
     //check that response string indicates error
     ASSERT_EQ(response, "please provide a target system");
@@ -38,10 +51,10 @@ TEST(CmdHandlerSuite, No_System_Given)
 /**
  * Test that response indicates invalid command given
  */
-TEST(CmdHandlerSuite, Invalid_Command)
+TEST_F(CmdHandlerSuite, Invalid_Command)
 {
     //do command with invalid command (first element in tokens vector)
-    std::string response = command_handler::do_command({"command", "root"}, testing_state_cmd_handler);
+    std::string response = command_handler::do_command({"command", "root"}, testing_state);
 
     //check that response string indicates invalid command given
     EXPECT_THAT(response, HasSubstr("command:"));
@@ -51,10 +64,10 @@ TEST(CmdHandlerSuite, Invalid_Command)
 /**
  * Test that command_handler handles an empty command string correctly
  */
-TEST(CmdHandlerSuite, Empty_Command)
+TEST_F(CmdHandlerSuite, Empty_Command)
 {
     //do command with empty token vector
-    std::string response = command_handler::do_command({""}, testing_state_cmd_handler);
+    std::string response = command_handler::do_command({""}, testing_state);
 
     //check that response handles correctly
     EXPECT_THAT(response, HasSubstr("command:"));
