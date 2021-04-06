@@ -72,8 +72,27 @@ file(GLOB_RECURSE SRC
         )
 
 #[[
-    Configure compilation target
+    Add googletest dependency
 ]]
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Gather all test files/related files needed for tests
+file(GLOB_RECURSE TESTS
+        "${CMAKE_SOURCE_DIR}/tests/*.cc"
+        "${CMAKE_SOURCE_DIR}/src/cmdhandler/command_handler.*"
+        )
+
+add_executable(AllTests ${PROTO_SRCS} ${PROTO_HDRS} ${TESTS})
+target_link_libraries(AllTests gtest gtest_main gmock ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog)
+add_test(NAME AllTests COMMAND AllTests)
+
 # Add the compile directory to the include directories so that the generated protobuf classes can be found
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 # Add compilation target
@@ -83,6 +102,7 @@ target_link_libraries(melon ${OpenCV_LIBS} ${PROTOBUF_LIBRARIES} spdlog::spdlog 
 # If MSVC compiler is not being used, add stdc++fs library
 if(NOT MSVC)
     target_link_libraries(melon stdc++fs)
+    target_link_libraries(AllTests stdc++fs)
 endif()
 
 # If on windows, add a special compiler definition for Asio and include Windows socket libraries for Asio
