@@ -97,7 +97,7 @@ TEST_F(CollectorSystemSuite, Lists_Collectors)
 TEST_F(CollectorSystemSuite, Invalid_IP_Given)
 {
     //insert initial collector with invalid ip
-    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.1", "5000"}, testing_state);
+    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.0.10.1", "5000"}, testing_state);
 
     //expect that response string indicates invalid ip address
     EXPECT_THAT(response, HasSubstr("valid ipv4 address"));
