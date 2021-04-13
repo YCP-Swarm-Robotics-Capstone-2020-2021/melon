@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "../../src/cmdhandler/command_handler.h"
+#include "../../src/cmdhandler/constants/commands.h"
+#include "../../src/cmdhandler/constants/systems.h"
 
 using ::testing::HasSubstr;
 
@@ -29,7 +31,7 @@ StateVariables CmdHandlerSuite::testing_state;
 TEST_F(CmdHandlerSuite, Invalid_System)
 {
     //do a command with the wrong system
-    std::string response = command_handler::do_command({"set", "wrongSystem"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD, "wrongSystem"}, testing_state);
 
     //check that response string indicates error
     EXPECT_THAT(response, HasSubstr("target system:"));
@@ -42,7 +44,7 @@ TEST_F(CmdHandlerSuite, Invalid_System)
 TEST_F(CmdHandlerSuite, No_System_Given)
 {
     //do a command with no system given
-    std::string response = command_handler::do_command({"set"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD}, testing_state);
 
     //check that response string indicates error
     ASSERT_EQ(response, "please provide a target system");
@@ -54,7 +56,7 @@ TEST_F(CmdHandlerSuite, No_System_Given)
 TEST_F(CmdHandlerSuite, Invalid_Command)
 {
     //do command with invalid command (first element in tokens vector)
-    std::string response = command_handler::do_command({"command", "root"}, testing_state);
+    std::string response = command_handler::do_command({"command", ROBOT_SYS_CMD}, testing_state);
 
     //check that response string indicates invalid command given
     EXPECT_THAT(response, HasSubstr("command:"));
