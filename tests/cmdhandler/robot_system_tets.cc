@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "../../src/cmdhandler/command_handler.h"
+#include "../../src/cmdhandler/constants/commands.h"
+#include "../../src/cmdhandler/constants/systems.h"
 
 using ::testing::HasSubstr;
 
@@ -29,7 +31,7 @@ StateVariables RobotSystemSuite::testing_state;
 TEST_F(RobotSystemSuite, Sets_Robot)
 {
     //set a robot value to check
-    std::string response = command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD, ROBOT_SYS_CMD, "r1", "1,2,3,4"}, testing_state);
 
     //check that response is correct and size of r1's value is correct
     EXPECT_THAT(response, HasSubstr("added with marker values"));
@@ -47,10 +49,10 @@ TEST_F(RobotSystemSuite, Sets_Robot)
 TEST_F(RobotSystemSuite, Gets_Robot)
 {
     //insert initial robot
-    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state);
+    command_handler::do_command({SET_CMD, ROBOT_SYS_CMD, "r1", "1,2,3,4"}, testing_state);
 
     //get the robot back
-    std::string response = command_handler::do_command({"get", "robot", "r1"}, testing_state);
+    std::string response = command_handler::do_command({GET_CMD, ROBOT_SYS_CMD, "r1"}, testing_state);
 
     //expect the robot's name/values to be in response string
     EXPECT_THAT(response, HasSubstr("r1:"));
@@ -63,10 +65,10 @@ TEST_F(RobotSystemSuite, Gets_Robot)
 TEST_F(RobotSystemSuite, Deletes_Robot)
 {
     //set initial robot
-    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state);
+    command_handler::do_command({SET_CMD, ROBOT_SYS_CMD, "r1", "1,2,3,4"}, testing_state);
 
     //delete said robot
-    std::string response = command_handler::do_command({"delete", "robot", "r1"}, testing_state);
+    std::string response = command_handler::do_command({DELETE_CMD, ROBOT_SYS_CMD, "r1"}, testing_state);
 
     //expect that response string indicates removal of robot, and the 'robots' map is empty
     EXPECT_THAT(response, HasSubstr("has been removed"));
@@ -79,11 +81,11 @@ TEST_F(RobotSystemSuite, Deletes_Robot)
 TEST_F(RobotSystemSuite, Lists_Robots)
 {
     //insert two robots
-    command_handler::do_command({"set", "robot", "r1", "1,2,3,4"}, testing_state);
-    command_handler::do_command({"set", "robot", "r2", "10,2,1,5"}, testing_state);
+    command_handler::do_command({SET_CMD, ROBOT_SYS_CMD, "r1", "1,2,3,4"}, testing_state);
+    command_handler::do_command({SET_CMD, ROBOT_SYS_CMD, "r2", "10,2,1,5"}, testing_state);
 
     //list out the said robots
-    std::string response = command_handler::do_command({"list", "robot"}, testing_state);
+    std::string response = command_handler::do_command({LIST_CMD, ROBOT_SYS_CMD}, testing_state);
 
     //expect the robots' names/values to be in response string
     EXPECT_THAT(response, HasSubstr("r1:"));
@@ -98,7 +100,7 @@ TEST_F(RobotSystemSuite, Lists_Robots)
 TEST_F(RobotSystemSuite, Invalid_Markers_Given)
 {
     //give a non int value as a marker id, expect that response indicates invalid value given
-    std::string response = command_handler::do_command({"set", "robot", "r1", "1,2,test,4"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD, ROBOT_SYS_CMD, "r1", "1,2,test,4"}, testing_state);
 
     EXPECT_THAT(response, HasSubstr("please provide"));
     EXPECT_THAT(response, HasSubstr("integers"));
