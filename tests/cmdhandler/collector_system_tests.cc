@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "../../src/cmdhandler/command_handler.h"
+#include "../../src/cmdhandler/constants/commands.h"
+#include "../../src/cmdhandler/constants/systems.h"
 
 using ::testing::HasSubstr;
 
@@ -29,7 +31,7 @@ StateVariables CollectorSystemSuite::testing_state;
 TEST_F(CollectorSystemSuite, Sets_Collector)
 {
     //insert initial collector
-    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs", "127.0.0.1", "5000"}, testing_state);
 
     //expect that response string includes correct ip/port/name, also that state has correct values
     EXPECT_THAT(response, HasSubstr("added with ip"));
@@ -43,10 +45,10 @@ TEST_F(CollectorSystemSuite, Sets_Collector)
 TEST_F(CollectorSystemSuite, Gets_Collector)
 {
     //insert initial collector
-    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state);
+    command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs", "127.0.0.1", "5000"}, testing_state);
 
     //do the get command on collector that was just made
-    std::string response = command_handler::do_command({"get", "collector", "gcs"}, testing_state);
+    std::string response = command_handler::do_command({GET_CMD, COLLECTOR_SYS_CMD, "gcs"}, testing_state);
 
     //expect that response string includes given values
     EXPECT_THAT(response, HasSubstr("gcs:"));
@@ -60,10 +62,10 @@ TEST_F(CollectorSystemSuite, Gets_Collector)
 TEST_F(CollectorSystemSuite, Deletes_Collector)
 {
     //insert initial collector
-    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state);
+    command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs", "127.0.0.1", "5000"}, testing_state);
 
     //delete said collector we just added
-    std::string response = command_handler::do_command({"delete", "collector", "gcs"}, testing_state);
+    std::string response = command_handler::do_command({DELETE_CMD, COLLECTOR_SYS_CMD, "gcs"}, testing_state);
 
     //expect that response string indicates removal, and that state 'collectors' map is empty
     EXPECT_THAT(response, HasSubstr("has been removed"));
@@ -76,11 +78,11 @@ TEST_F(CollectorSystemSuite, Deletes_Collector)
 TEST_F(CollectorSystemSuite, Lists_Collectors)
 {
     //add initial collectors
-    command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "5000"}, testing_state);
-    command_handler::do_command({"set", "collector", "gcs2", "10.1.1.1", "8080"}, testing_state);
+    command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs", "127.0.0.1", "5000"}, testing_state);
+    command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs2", "10.1.1.1", "8080"}, testing_state);
 
     //list said collectors
-    std::string response = command_handler::do_command({"list", "collector"}, testing_state);
+    std::string response = command_handler::do_command({LIST_CMD, COLLECTOR_SYS_CMD}, testing_state);
 
     //expect that response string includes correct values/ports/names
     EXPECT_THAT(response, HasSubstr("gcs:"));
@@ -97,7 +99,7 @@ TEST_F(CollectorSystemSuite, Lists_Collectors)
 TEST_F(CollectorSystemSuite, Invalid_IP_Given)
 {
     //insert initial collector with invalid ip
-    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.0.10.1", "5000"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs", "127.0.0.10.1", "5000"}, testing_state);
 
     //expect that response string indicates invalid ip address
     EXPECT_THAT(response, HasSubstr("valid ipv4 address"));
@@ -109,7 +111,7 @@ TEST_F(CollectorSystemSuite, Invalid_IP_Given)
 TEST_F(CollectorSystemSuite, Invalid_Port_Given)
 {
     //insert initial collector with invalid port
-    std::string response = command_handler::do_command({"set", "collector", "gcs", "127.0.0.1", "70000"}, testing_state);
+    std::string response = command_handler::do_command({SET_CMD, COLLECTOR_SYS_CMD, "gcs", "127.0.0.1", "70000"}, testing_state);
 
     //expect that response string indicates invalid port
     EXPECT_THAT(response, HasSubstr("valid port number"));
