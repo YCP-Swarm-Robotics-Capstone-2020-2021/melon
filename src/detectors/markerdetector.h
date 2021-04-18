@@ -11,7 +11,7 @@ class MarkerDetector
 {
 public:
     MarkerDetector(CameraCalib calib);
-    std::vector<Marker> detect(cv::Mat& frame, bool draw = false);
+     void detect(cv::Mat& frame, std::vector<int>& ids, std::vector<int>& corners, bool draw = false);
 private:
     CameraCalib m_calib;
     cv::Ptr<cv::aruco::Dictionary> m_dictionary;

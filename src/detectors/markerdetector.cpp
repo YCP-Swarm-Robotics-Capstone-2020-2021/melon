@@ -6,6 +6,7 @@ MarkerDetector::MarkerDetector(CameraCalib calib) : m_calib(calib)
 {
 }
 
+/*
 std::vector<Marker> MarkerDetector::detect(cv::Mat& frame, bool draw)
 {
     // Detect the markers
@@ -39,4 +40,12 @@ std::vector<Marker> MarkerDetector::detect(cv::Mat& frame, bool draw)
     }
 
     return markers;
+}*/
+
+void MarkerDetector::detect(cv::Mat& frame, std::vector<int>& ids, std::vector<int>& corners, bool draw)
+{
+    cv::aruco::detectMarkers(frame, m_dictionary, corners, ids);
+
+    std::sort(corners.begin(), corners.end(), [&ids](size_t a, size_t b) { return ids[a] > ids[b]; });
+    std::sort(ids.begin(), ids.end(), std::greater<int>());
 }
