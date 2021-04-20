@@ -12,11 +12,13 @@
 #include <iomanip>
 #include <filesystem>
 #include <opencv2/opencv.hpp>
+#include <opencv2/aruco.hpp>
 
 #include "cmdhandler/server.h"
 #include "camera/camerawrapper.h"
 #include "collectorserver/collectorserver.h"
 
+namespace aruco = cv::aruco;
 const std::string LOG_DIR = "logs/";
 
 /** @brief Callback function for the thread that the command handler runs in
@@ -111,6 +113,9 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
         CollectorServer server(local_variables);
 
+        cv::Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(local_variables.camera.marker_dictionary);
+        cv::Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
+
         bool loop = true;
         cv::Mat frame;
         // Main frame-grabber loop
@@ -130,6 +135,7 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
                     state->apply(local_variables);
                 }
 
+                dictionary = aruco::getPredefinedDictionary(local_variables.camera.marker_dictionary);
                 // Update the server and camera with the new state variables
                 server.update_state(local_variables);
                 camera.update_state(local_variables);
@@ -153,4 +159,43 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     {
         spdlog::critical("Exception in camera thread: \n{}", e.what());
     }
+}
+
+// Checks if a matrix is a valid rotation matrix.
+// https://learnopencv.com/rotation-matrix-to-euler-angles/
+bool isRotationMatrix(cv::Mat &R)
+{
+    cv::Mat Rt;
+    cv::transpose(R, Rt);
+    cv::Mat shouldBeIdentity = Rt * R;
+    cv::Mat I = cv::Mat::eye(3,3, shouldBeIdentity.type());
+
+    return  cv::norm(I, shouldBeIdentity) < 1e-6;
+
+}
+// Calculates rotation matrix to euler angles
+// https://learnopencv.com/rotation-matrix-to-euler-angles/
+cv::Vec3d rotationMatrixToEulerAngles(cv::Mat &R)
+{
+
+    assert(isRotationMatrix(R));
+
+    float sy = sqrt(R.at<double>(0,0) * R.at<double>(0,0) +  R.at<double>(1,0) * R.at<double>(1,0) );
+
+    bool singular = sy < 1e-6; // If
+
+    float x, y, z;
+    if (!singular)
+    {
+        x = atan2(R.at<double>(2,1) , R.at<double>(2,2));
+        y = atan2(-R.at<double>(2,0), sy);
+        z = atan2(R.at<double>(1,0), R.at<double>(0,0));
+    }
+    else
+    {
+        x = atan2(-R.at<double>(1,2), R.at<double>(1,1));
+        y = atan2(-R.at<double>(2,0), sy);
+        z = 0;
+    }
+    return cv::Vec3d(x, y, z);
 }
