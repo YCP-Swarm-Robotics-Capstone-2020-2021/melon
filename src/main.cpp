@@ -16,7 +16,9 @@
 #include "cmdhandler/server.h"
 #include "camera/camerawrapper.h"
 #include "collectorserver/collectorserver.h"
-
+#include "cmdhandler/variables/variable.h"
+#include "cmdhandler/systems/system.h"
+#include "cmdhandler/commands/namedcmd.h"
 const std::string LOG_DIR = "logs/";
 
 /** @brief Callback function for the thread that the command handler runs in

@@ -625,7 +625,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         std::string variable = tokens[2];
-        current_state.camera = CameraSystem{};
+        current_state.camera = CameraSystemState{};
 
         if(variable == CameraSystemVars::SOURCE){
             current_state.camera.source = "";

@@ -12,7 +12,7 @@
 /** @brief Robot system state
  *
  */
-struct RobotSystem
+struct RobotSystemState
 {
     std::unordered_map<std::string, std::vector<int>> robots;
 };
@@ -20,7 +20,7 @@ struct RobotSystem
 /** @brief Collector system state
  *
  */
-struct CollectorSystem
+struct CollectorSystemState
 {
     std::unordered_map<std::string, asio::ip::udp::endpoint> collectors;
 };
@@ -28,7 +28,7 @@ struct CollectorSystem
 /** @brief camera system state
  *
  */
-struct CameraSystem
+struct CameraSystemState
 {
     std::string type;
     bool connected = false;
@@ -50,9 +50,9 @@ struct CameraSystem
 class Variables
 {
 public:
-    RobotSystem robot;
-    CollectorSystem collector;
-    CameraSystem camera;
+    RobotSystemState robot;
+    CollectorSystemState collector;
+    CameraSystemState camera;
 protected:
     Variables() = default;
 };
