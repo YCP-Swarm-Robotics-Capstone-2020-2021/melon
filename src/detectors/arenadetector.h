@@ -3,6 +3,7 @@
 
 #include "../cmdhandler/statevariables.h"
 #include "../camera/camerawrapper.h"
+#include "markerdetector.h"
 #include <opencv2/aruco.hpp>
 
 namespace aruco = cv::aruco;
@@ -10,9 +11,8 @@ namespace aruco = cv::aruco;
 class ArenaDetector : public UpdateableState
 {
 public:
-    ArenaDetector(const cv::Ptr<aruco::Dictionary>& dict, const cv::Ptr<aruco::DetectorParameters>& params);
-
-    void detect(cv::Mat& frame, const CameraCalib& calib, bool draw_center = false);
+    // Detect markers that make up bounds and draw mask onto frame
+    bool detect(cv::Mat& frame, const DetectionResult& markers, const PoseResult& poses, bool draw_center = false);
 private:
     // Mask for cropping frame
     cv::Mat m_mask;
@@ -20,12 +20,10 @@ private:
     cv::Vec2d m_center_pixel;
     // Translation vector for center of frame
     cv::Vec2d m_center_tvec;
+    // Real world distance between marker 0 and marker 1
+    double m_real_dist;
     // Multiplier for converting a translation vector into the given real-world units
     double m_unit;
-    double m_marker_length;
-
-    cv::Ptr<aruco::Dictionary> m_dict;
-    cv::Ptr<aruco::DetectorParameters> m_params;
 };
 
 
