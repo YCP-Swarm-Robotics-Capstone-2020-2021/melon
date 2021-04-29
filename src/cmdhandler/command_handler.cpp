@@ -620,6 +620,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 spdlog::error(err.what());
                 return "please provide a valid floating-point value";
             }
+            return "'"+variable+"' set to "+tokens[3];
         }
 
         return "variable '"+variable+"' does not exist";
