@@ -39,6 +39,8 @@ struct CameraSystem
     std::unordered_map<std::string, bool> camera_options;
     float marker_length;
     float arena_distance;
+    bool video_output = false;
+    bool postprocessing = false;
 };
 
 /** @brief Container class for state variables

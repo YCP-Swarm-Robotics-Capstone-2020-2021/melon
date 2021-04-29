@@ -32,6 +32,8 @@ message CameraSys
   map<string, bool> options = 7;
   string marker_length = 8;
   string arena_distance = 9;
+  bool video_output = 10;
+  bool postprocessing = 11;
 }
 
 message State

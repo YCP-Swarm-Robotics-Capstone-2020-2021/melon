@@ -17,6 +17,8 @@ namespace CameraSystemVars
     // This is measured from the center of the markers
     // Unit doesn't matter as long as its the same as marker length
     constexpr char ARENA_DIST[] = "arena_distance";
+    constexpr char VIDEO_OUTPUT[] = "video_output";
+    constexpr char POSTPROCESSING[] = "postprocessing";
 
     constexpr char TYPE_OPENCV[] = "opencv";
     constexpr char TYPE_SPINNAKER[] = "spinnaker";
