@@ -30,6 +30,8 @@ message CameraSys
   repeated double distortion_matrix = 5;
   int32 marker_dictionary = 6;
   map<string, bool> options = 7;
+  string marker_length = 8;
+  string arena_distance = 9;
 }
 
 message State

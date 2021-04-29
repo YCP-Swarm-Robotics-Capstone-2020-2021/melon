@@ -235,6 +235,12 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
             (*state_to_save.mutable_camera_system()->mutable_options())[option.first] = option.second;
         }
 
+        //save marker_length
+        state_to_save.mutable_camera_system()->set_marker_length(std::to_string(current_state.camera.marker_length));
+
+        //save arena_distance
+        state_to_save.mutable_camera_system()->set_arena_distance(std::to_string(current_state.camera.arena_distance));
+
         std::fstream output(StateSystemVars::SAVE_DIR+save_name, std::ios::out | std::ios::trunc | std::ios::binary);
         state_to_save.SerializeToOstream(&output);
 
@@ -312,6 +318,12 @@ std::string command_handler::state_system(const std::vector<std::string>& tokens
         for(auto const &option : state_to_load.camera_system().options()){
             current_state.camera.camera_options.insert(std::pair<std::string, bool>(option.first, option.second));
         }
+
+        //marker_length from loaded state
+        current_state.camera.marker_length = std::stof(state_to_load.camera_system().marker_length());
+
+        //arena_distance from loaded state
+        current_state.camera.arena_distance = std::stof(state_to_load.camera_system().arena_distance());
 
         input.close();
         return "current state loaded from '"+load_name+"'";
@@ -459,6 +471,14 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             response << "\n        " << option.first << ": " << std::boolalpha << option.second;
         }
 
+        //add marker_length variable
+        response << "\n    marker_length: ";
+        response << current_state.camera.marker_length;
+
+        //add arena_distance variable
+        response << "\n    arena_distance: ";
+        response << current_state.camera.arena_distance;
+
         return response.str();
     }else if(tokens[0] == SET_CMD){
         if(tokens.size() < 3){
@@ -575,6 +595,31 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
                 current_state.camera.camera_options.insert(std::pair<std::string, bool>(option_name, option_value));
             }
             return "'"+option_name+"' set to "+std::to_string(option_value);
+        }else if(variable == CameraSystemVars::MARKER_LEN){
+            if(tokens.size() != 4){
+                return "please provide a floating-point value for variable '"+variable+"'\n    ex: set camera"+variable+" 0.3";
+            }
+
+            try{
+                current_state.camera.marker_length = std::stof(tokens[3]);
+            }catch(const std::invalid_argument& err)
+            {
+                spdlog::error(err.what());
+                return "please provide a valid floating-point value";
+            }
+            return "'"+variable+"' set to "+tokens[3];
+        }else if(variable == CameraSystemVars::ARENA_DIST){
+            if(tokens.size() != 4){
+                return "please provide a floating-point value for variable '"+variable+"'\n    ex: set camera"+variable+" 0.3";
+            }
+
+            try{
+                current_state.camera.arena_distance = std::stof(tokens[3]);
+            }catch(const std::invalid_argument& err)
+            {
+                spdlog::error(err.what());
+                return "please provide a valid floating-point value";
+            }
         }
 
         return "variable '"+variable+"' does not exist";
@@ -616,6 +661,10 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             }
 
             return response.str();
+        }else if(variable == CameraSystemVars::MARKER_LEN){
+            return std::string(CameraSystemVars::MARKER_LEN) + ": " + std::to_string(current_state.camera.marker_length);
+        }else if(variable == CameraSystemVars::ARENA_DIST){
+            return std::string(CameraSystemVars::ARENA_DIST) + ": " + std::to_string(current_state.camera.arena_distance);
         }
 
         return "variable '"+variable+"' does not exist";
@@ -625,6 +674,7 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
         }
 
         std::string variable = tokens[2];
+        // TODO: this shouldn't be cleared
         current_state.camera = CameraSystem{};
 
         if(variable == CameraSystemVars::SOURCE){
@@ -637,6 +687,10 @@ std::string command_handler::camera_system(const std::vector<std::string>& token
             current_state.camera.marker_dictionary = 0;
         }else if(variable == CameraSystemVars::OPTIONS){
             current_state.camera.camera_options.clear();
+        }else if(variable == CameraSystemVars::MARKER_LEN){
+            current_state.camera.marker_length = 0;
+        }else if(variable == CameraSystemVars::ARENA_DIST){
+            current_state.camera.arena_distance = 0;
         }else{
            return "variable '"+variable+"' does not exist";
         }
@@ -667,7 +721,7 @@ std::string command_handler::help_command(){
     response += "for the 'camera' system you can use the commands:\n";
     response += "    get, set, list (current camera variables), delete\n";
     response += "you can modify the following variables:\n";
-    response += "    type, connected, source, camera_matrix, distortion_matrix, marker_dictionary, camera_options\n";
+    response += "    type, connected, source, camera_matrix, distortion_matrix, marker_dictionary, camera_options, marker_length, arena_distance\n";
     response += "ex: 'get camera source' or 'list camera' or 'set camera marker_dictionary 6' or 'delete camera source'\n\n";
 
     response += "intended usage for each target system/variable will be clarified if used incorrectly.\n\n";

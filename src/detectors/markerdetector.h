@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
 #include "../camera/cameracalib.h"
+#include <unordered_map>
 
 namespace aruco = cv::aruco;
 
@@ -20,15 +21,25 @@ struct PoseResult
     CameraCalib calib;
     std::vector<cv::Vec3d> rvecs, tvecs;
 };
-
+class Result
+{
+public:
+    Result(const std::vector<cv::Point2f>& corners, const cv::Vec3d& rvec, const cv::Vec3d& tvec)
+        : corners(corners), rvec(rvec), tvec(tvec){}
+    const std::vector<cv::Point2f>& corners;
+    const cv::Vec3d& rvec;
+    const cv::Vec3d& tvec;
+};
+using ResultMap = std::unordered_map<int, Result>;
 namespace MarkerDetector
 {
-    static DetectionResult detect(cv::Mat& frame,
+    DetectionResult detect(cv::Mat& frame,
                                   const cv::Ptr<aruco::Dictionary>& dict,
                                   const cv::Ptr<aruco::DetectorParameters>& params,
                                   bool draw = false);
 
-    static PoseResult pose(const DetectionResult& detection_result, const CameraCalib& calib, float marker_length);
+    PoseResult pose(const DetectionResult& detection_result, const CameraCalib& calib, float marker_length);
+    ResultMap map_results(const DetectionResult& detection_result, const PoseResult& pose_result);
 };
 
 

@@ -11,8 +11,16 @@ namespace aruco = cv::aruco;
 class ArenaDetector : public UpdateableState
 {
 public:
+    explicit ArenaDetector(const StateVariables& state);
     // Detect markers that make up bounds and draw mask onto frame
-    bool detect(cv::Mat& frame, const DetectionResult& markers, const PoseResult& poses, bool draw_center = false);
+    bool detect(cv::Mat& frame,
+                const DetectionResult& markers,
+                const PoseResult& poses,
+                const ResultMap& marker_map,
+                bool draw_center = false);
+    // Adjust the given tvec to be based off of the arena center and in real-world units
+    cv::Vec3d adjust_tvec(const cv::Vec3d& tvec) const;
+    void update_state(const StateVariables &state) override;
 private:
     // Mask for cropping frame
     cv::Mat m_mask;
@@ -21,9 +29,9 @@ private:
     // Translation vector for center of frame
     cv::Vec2d m_center_tvec;
     // Real world distance between marker 0 and marker 1
-    double m_real_dist;
+    float m_real_dist;
     // Multiplier for converting a translation vector into the given real-world units
-    double m_unit;
+    float m_unit;
 };
 
 

@@ -17,6 +17,9 @@
 #include "cmdhandler/server.h"
 #include "camera/camerawrapper.h"
 #include "collectorserver/collectorserver.h"
+#include "detectors/markerdetector.h"
+#include "detectors/arenadetector.h"
+#include "detectors/robotdetector.h"
 
 namespace aruco = cv::aruco;
 const std::string LOG_DIR = "logs/";
@@ -116,6 +119,10 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
         cv::Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(local_variables.camera.marker_dictionary);
         cv::Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
 
+        ArenaDetector arena(local_variables);
+        float marker_length;
+
+        bool draw = false;
         bool loop = true;
         cv::Mat frame;
         // Main frame-grabber loop
@@ -139,17 +146,51 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
                 // Update the server and camera with the new state variables
                 server.update_state(local_variables);
                 camera.update_state(local_variables);
+                arena.update_state(local_variables);
+                // TODO: Update marker length
+                marker_length = local_variables.camera.marker_length;
+                draw = camera->video_output_enabled() && camera->video_postprocessing_enabled();
             }
 
             if(camera->get_frame(frame))
             {
-                cv::resize(frame, frame, cv::Size(1280, 720));
-                cv::imshow("camera", frame);
-            }
+                DetectionResult markers =
+                        MarkerDetector::detect(frame, dictionary, params, draw);
+                PoseResult marker_poses = MarkerDetector::pose(markers, camera->get_camera_calib(), marker_length);
+                ResultMap result_map = MarkerDetector::map_results(markers, marker_poses);
+                if(arena.detect(frame, markers, marker_poses, result_map, draw))
+                {
+                    std::vector<RobotData> robot_data = RobotDetector::detect(markers,
+                                                                              marker_poses,
+                                                                              result_map,
+                                                                              arena,
+                                                                              local_variables);
 
-            // TODO: Actually generate/get data
-            std::string data = "data";
-            server.send(data);
+                    std::string data = "{\"robots\": [";
+                    for(const RobotData& robot : robot_data)
+                    {
+                        data += "{\"id\": \"" + robot.id + "\", ";
+                        data += "\"pos\": [";
+                        data += std::to_string(robot.pos[0]) + ",";
+                        data += std::to_string(robot.pos[1]) + ",";
+                        data += std::to_string(robot.pos[2]) + "], ";
+                        data += "\"ort\": " + std::to_string(robot.ort) + "}";
+                        data += ", ";
+                    }
+                    // remove trailing ", "
+                    data.pop_back();
+                    data.pop_back();
+
+                    data += "]}";
+                    server.send(data);
+                }
+
+                if(camera->video_output_enabled())
+                {
+                    cv::resize(frame, frame, cv::Size(1280, 720));
+                    cv::imshow("camera", frame);
+                }
+            }
 
             if(cv::waitKey(1) == 27)
                 loop = false;
@@ -159,43 +200,4 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
     {
         spdlog::critical("Exception in camera thread: \n{}", e.what());
     }
-}
-
-// Checks if a matrix is a valid rotation matrix.
-// https://learnopencv.com/rotation-matrix-to-euler-angles/
-bool isRotationMatrix(cv::Mat &R)
-{
-    cv::Mat Rt;
-    cv::transpose(R, Rt);
-    cv::Mat shouldBeIdentity = Rt * R;
-    cv::Mat I = cv::Mat::eye(3,3, shouldBeIdentity.type());
-
-    return  cv::norm(I, shouldBeIdentity) < 1e-6;
-
-}
-// Calculates rotation matrix to euler angles
-// https://learnopencv.com/rotation-matrix-to-euler-angles/
-cv::Vec3d rotationMatrixToEulerAngles(cv::Mat &R)
-{
-
-    assert(isRotationMatrix(R));
-
-    float sy = sqrt(R.at<double>(0,0) * R.at<double>(0,0) +  R.at<double>(1,0) * R.at<double>(1,0) );
-
-    bool singular = sy < 1e-6; // If
-
-    float x, y, z;
-    if (!singular)
-    {
-        x = atan2(R.at<double>(2,1) , R.at<double>(2,2));
-        y = atan2(-R.at<double>(2,0), sy);
-        z = atan2(R.at<double>(1,0), R.at<double>(0,0));
-    }
-    else
-    {
-        x = atan2(-R.at<double>(1,2), R.at<double>(1,1));
-        y = atan2(-R.at<double>(2,0), sy);
-        z = 0;
-    }
-    return cv::Vec3d(x, y, z);
 }

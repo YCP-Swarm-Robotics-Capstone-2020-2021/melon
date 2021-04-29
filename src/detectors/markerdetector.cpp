@@ -12,11 +12,6 @@ DetectionResult MarkerDetector::detect(cv::Mat& frame,
     result.parameters = params;
     aruco::detectMarkers(frame, result.dictionary, result.corners, result.ids, result.parameters);
 
-/*    std::sort(result.corners.begin(),
-              result.corners.end(),
-              [&result](size_t a, size_t b) { return result.ids[a] > result.ids[b]; });
-    std::sort(result.ids.begin(), result.ids.end(), std::greater<int>());*/
-
     if(draw)
         aruco::drawDetectedMarkers(frame, result.corners, result.ids);
 
@@ -37,11 +32,15 @@ PoseResult MarkerDetector::pose(const DetectionResult& detection_result, const C
     return result;
 }
 
-/*
-void MarkerDetector::detect(cv::Mat& frame, std::vector<int>& ids, std::vector<int>& corners, bool draw)
+ResultMap MarkerDetector::map_results(const DetectionResult& detection_result, const PoseResult& pose_result)
 {
-    cv::aruco::detectMarkers(frame, m_dictionary, corners, ids);
+    ResultMap map;
+    for(int i = 0; i < detection_result.ids.size(); ++i)
+    {
+        int id = detection_result.ids[i];
+        Result result(detection_result.corners[i], pose_result.rvecs[i], pose_result.tvecs[i]);
+        map.emplace(id, result);
+    }
 
-    std::sort(corners.begin(), corners.end(), [&ids](size_t a, size_t b) { return ids[a] > ids[b]; });
-    std::sort(ids.begin(), ids.end(), std::greater<int>());
-}*/
+    return map;
+}

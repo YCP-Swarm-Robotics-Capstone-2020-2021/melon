@@ -37,6 +37,8 @@ struct CameraSystem
     cv::Mat distortion_matrix;
     int marker_dictionary = 0;
     std::unordered_map<std::string, bool> camera_options;
+    float marker_length;
+    float arena_distance;
 };
 
 /** @brief Container class for state variables
