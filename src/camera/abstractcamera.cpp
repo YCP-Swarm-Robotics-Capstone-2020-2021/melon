@@ -56,4 +56,10 @@ void AbstractCamera::update_state(const StateVariables& state)
         }
     }
     m_connected = state.camera.connected;
+
+    m_video_output = state.camera.video_output;
+    m_video_postprocessing = state.camera.postprocessing;
+
+    m_calib.matrix = state.camera.camera_matrix;
+    m_calib.dist_coeffs = state.camera.distortion_matrix;
 }
