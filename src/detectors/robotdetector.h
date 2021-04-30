@@ -3,6 +3,11 @@
 
 #include <vector>
 #include <opencv2/core/matx.hpp>
+#include <unordered_map>
+
+#include "markerdetector.h"
+#include "arenadetector.h"
+
 struct RobotData
 {
     std::string id;
@@ -10,20 +15,12 @@ struct RobotData
     float ort;
 };
 
-class ArenaDetector;
-class DetectionResult;
-class PoseResult;
-class Result;
-class StateVariables;
-class RobotDetector
+namespace RobotDetector
 {
-public:
-    static std::vector<RobotData> detect(const DetectionResult& markers,
-                                         const PoseResult& marker_poses,
-                                         const std::unordered_map<int, Result>& result_map,
-                                         const ArenaDetector& arena,
-                                         const StateVariables& state,
-                                         bool draw = false);
+    std::vector<RobotData> detect(MarkerDetector& markers,
+                                  const ArenaDetector& arena,
+                                  const std::unordered_map<std::string, std::vector<int>>& robots,
+                                  bool draw = false);
 };
 
 

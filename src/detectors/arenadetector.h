@@ -12,12 +12,12 @@ class ArenaDetector : public UpdateableState
 {
 public:
     explicit ArenaDetector(const StateVariables& state);
-    // Detect markers that make up bounds and draw mask onto frame
-    bool detect(cv::Mat& frame,
-                const DetectionResult& markers,
-                const PoseResult& poses,
-                const ResultMap& marker_map,
-                bool draw_center = false);
+    // Detect markers that make up bounds
+    void detect(cv::Mat& frame, MarkerDetector& markers);
+    // Has the arena been detected already
+    bool detected();
+    // Apply the mask generated from the detected arena
+    void apply_mask(cv::Mat& frame, bool draw_center = false);
     // Adjust the given tvec to be based off of the arena center and in real-world units
     cv::Vec3d adjust_tvec(const cv::Vec3d& tvec) const;
     void update_state(const StateVariables &state) override;

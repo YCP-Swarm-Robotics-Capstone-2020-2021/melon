@@ -6,40 +6,58 @@
 #include <opencv2/aruco.hpp>
 #include "../camera/cameracalib.h"
 #include <unordered_map>
+#include "../cmdhandler/statevariables.h"
 
 namespace aruco = cv::aruco;
 
-struct DetectionResult
-{
-    cv::Ptr<aruco::Dictionary> dictionary;
-    cv::Ptr<aruco::DetectorParameters> parameters;
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners;
-};
-struct PoseResult
-{
-    CameraCalib calib;
-    std::vector<cv::Vec3d> rvecs, tvecs;
-};
-class Result
+class Marker
 {
 public:
-    Result(const std::vector<cv::Point2f>& corners, const cv::Vec3d& rvec, const cv::Vec3d& tvec)
-        : corners(corners), rvec(rvec), tvec(tvec){}
+    Marker(int id, const std::vector<cv::Point2f>& corners, const cv::Vec3d& rvec, const cv::Vec3d& tvec)
+            : id(id), corners(corners), rvec(rvec), tvec(tvec){}
+    int id;
     const std::vector<cv::Point2f>& corners;
     const cv::Vec3d& rvec;
     const cv::Vec3d& tvec;
 };
-using ResultMap = std::unordered_map<int, Result>;
-namespace MarkerDetector
-{
-    DetectionResult detect(cv::Mat& frame,
-                                  const cv::Ptr<aruco::Dictionary>& dict,
-                                  const cv::Ptr<aruco::DetectorParameters>& params,
-                                  bool draw = false);
 
-    PoseResult pose(const DetectionResult& detection_result, const CameraCalib& calib, float marker_length);
-    ResultMap map_results(const DetectionResult& detection_result, const PoseResult& pose_result);
+
+class MarkerDetector : public UpdateableState
+{
+public:
+    explicit MarkerDetector(const StateVariables& state);
+    void update_state(const StateVariables &state) override;
+
+    int detect(cv::Mat& frame, bool draw = false);
+    void pose(cv::Mat& frame, bool draw = false, int axis_len = 2);
+
+    const cv::Ptr<aruco::Dictionary>& dictionary() const;
+    const cv::Ptr<aruco::DetectorParameters>& parameters() const;
+    const CameraCalib& camera_calib() const;
+    int marker_length() const;
+
+    const std::vector<int>& ids() const;
+    const std::vector<std::vector<cv::Point2f>>& corners() const;
+    const std::vector<cv::Vec3d>& rvecs() const;
+    const std::vector<cv::Vec3d>& tvecs() const;
+
+    bool marker_detected(int id);
+    const Marker& get_marker(int id);
+
+    const Marker& operator[](int id);
+
+private:
+    cv::Ptr<aruco::Dictionary> m_dictionary;
+    cv::Ptr<aruco::DetectorParameters> m_parameters;
+    CameraCalib m_calib;
+    float m_marker_length;
+    std::vector<int> m_ids;
+    std::vector<std::vector<cv::Point2f>> m_corners;
+    std::vector<cv::Vec3d> m_rvecs, m_tvecs;
+
+    std::unordered_map<int, Marker> m_marker_map;
+
+    void init_marker_map();
 };
 
 

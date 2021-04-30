@@ -116,13 +116,10 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
 
         CollectorServer server(local_variables);
 
-        cv::Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(local_variables.camera.marker_dictionary);
-        cv::Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
-
+        MarkerDetector marker_detector(local_variables);
         ArenaDetector arena(local_variables);
-        float marker_length;
+        bool draw = camera->video_output_enabled() && camera->video_postprocessing_enabled();;
 
-        bool draw = false;
         bool loop = true;
         cv::Mat frame;
         // Main frame-grabber loop
@@ -142,47 +139,53 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
                     state->apply(local_variables);
                 }
 
-                dictionary = aruco::getPredefinedDictionary(local_variables.camera.marker_dictionary);
                 // Update the server and camera with the new state variables
                 server.update_state(local_variables);
                 camera.update_state(local_variables);
+                marker_detector.update_state(local_variables);
                 arena.update_state(local_variables);
-                // TODO: Update marker length
-                marker_length = local_variables.camera.marker_length;
                 draw = camera->video_output_enabled() && camera->video_postprocessing_enabled();
             }
 
             if(camera->get_frame(frame))
             {
-                DetectionResult markers =
-                        MarkerDetector::detect(frame, dictionary, params, draw);
-                PoseResult marker_poses = MarkerDetector::pose(markers, camera->get_camera_calib(), marker_length);
-                ResultMap result_map = MarkerDetector::map_results(markers, marker_poses);
-                if(arena.detect(frame, markers, marker_poses, result_map, draw))
+                if(!arena.detected())
                 {
-                    std::vector<RobotData> robot_data = RobotDetector::detect(markers,
-                                                                              marker_poses,
-                                                                              result_map,
+                    marker_detector.detect(frame);
+                    marker_detector.pose(frame);
+                    arena.detect(frame, marker_detector);
+                }
+                else
+                {
+                    arena.apply_mask(frame, draw);
+
+                    marker_detector.detect(frame);
+                    marker_detector.pose(frame);
+
+                    std::vector<RobotData> robot_data = RobotDetector::detect(marker_detector,
                                                                               arena,
-                                                                              local_variables);
+                                                                              local_variables.robot.robots);
 
-                    std::string data = "{\"robots\": [";
-                    for(const RobotData& robot : robot_data)
+                    if(!robot_data.empty())
                     {
-                        data += "{\"id\": \"" + robot.id + "\", ";
-                        data += "\"pos\": [";
-                        data += std::to_string(robot.pos[0]) + ",";
-                        data += std::to_string(robot.pos[1]) + ",";
-                        data += std::to_string(robot.pos[2]) + "], ";
-                        data += "\"ort\": " + std::to_string(robot.ort) + "}";
-                        data += ", ";
-                    }
-                    // remove trailing ", "
-                    data.pop_back();
-                    data.pop_back();
+                        std::string data = "{\"robots\": [";
+                        for(const RobotData& robot : robot_data)
+                        {
+                            data += "{\"id\": \"" + robot.id + "\", ";
+                            data += "\"pos\": [";
+                            data += std::to_string(robot.pos[0]) + ",";
+                            data += std::to_string(robot.pos[1]) + ",";
+                            data += std::to_string(robot.pos[2]) + "], ";
+                            data += "\"ort\": " + std::to_string(robot.ort) + "}";
+                            data += ", ";
+                        }
+                        // remove trailing ", "
+                        data.pop_back();
+                        data.pop_back();
 
-                    data += "]}";
-                    server.send(data);
+                        data += "]}";
+                        server.send(data);
+                    }
                 }
 
                 if(camera->video_output_enabled())

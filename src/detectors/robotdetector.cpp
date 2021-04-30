@@ -1,7 +1,4 @@
 #include "robotdetector.h"
-#include "markerdetector.h"
-#include "arenadetector.h"
-#include "../cmdhandler/statevariables.h"
 
 // Calculates rotation matrix to euler angles
 // https://learnopencv.com/rotation-matrix-to-euler-angles/
@@ -30,29 +27,32 @@ cv::Vec3d rotationMatrixToEulerAngles(cv::Mat &R)
     return cv::Vec3d(x, z, y);
 }
 
-std::vector<RobotData> RobotDetector::detect(const DetectionResult& markers,
-                                             const PoseResult& marker_poses,
-                                             const ResultMap& result_map,
+std::vector<RobotData> RobotDetector::detect(MarkerDetector& markers,
                                              const ArenaDetector& arena,
-                                             const StateVariables& state,
+                                             const std::unordered_map<std::string, std::vector<int>>& robots,
                                              bool draw)
 {
-    std::vector<RobotData> out(state.robot.robots.size());
+    std::vector<RobotData> out;
+    out.reserve(robots.size());
 
     cv::Mat rotation;
-    for(const auto& robot : state.robot.robots)
+
+    for(const auto& robot : robots)
     {
-        RobotData data;
-        data.id = robot.first;
+        if(markers.marker_detected(robot.second[0]))
+        {
+            RobotData data;
+            data.id = robot.first;
 
-        const Result& result = result_map.at(robot.second[0]);
+            const Marker& marker = markers[robot.second[0]];
 
-        data.pos = arena.adjust_tvec(result.tvec);
+            data.pos = arena.adjust_tvec(marker.tvec);
 
-        cv::Rodrigues(result.rvec, rotation);
-        data.ort = rotationMatrixToEulerAngles(rotation)[1] * (180.0 / CV_PI);
+            cv::Rodrigues(marker.rvec, rotation);
+            data.ort = rotationMatrixToEulerAngles(rotation)[1] * (180.0 / CV_PI);
 
-        out.push_back(data);
+            out.push_back(data);
+        }
     }
 
     return out;
