@@ -151,16 +151,16 @@ void camera_thread_func(std::shared_ptr<GlobalState> state)
             {
                 if(!arena.detected())
                 {
-                    marker_detector.detect(frame);
-                    marker_detector.pose(frame);
+                    marker_detector.detect(frame, draw);
+                    marker_detector.pose(frame, draw);
                     arena.detect(frame, marker_detector);
                 }
                 else
                 {
                     arena.apply_mask(frame, draw);
 
-                    marker_detector.detect(frame);
-                    marker_detector.pose(frame);
+                    marker_detector.detect(frame, draw);
+                    marker_detector.pose(frame, draw);
 
                     std::vector<RobotData> robot_data = RobotDetector::detect(marker_detector,
                                                                               arena,

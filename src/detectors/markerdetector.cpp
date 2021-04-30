@@ -59,6 +59,8 @@ void MarkerDetector::update_state(const StateVariables& state)
 
 int MarkerDetector::detect(cv::Mat& frame, bool draw)
 {
+    m_marker_map.clear();
+
     aruco::detectMarkers(frame, m_dictionary, m_corners, m_ids, m_parameters);
 
     if(draw)
@@ -77,7 +79,8 @@ void MarkerDetector::pose(cv::Mat& frame, bool draw, int axis_len)
                                      m_tvecs);
 
     if(draw)
-        aruco::drawAxis(frame, m_calib.matrix, m_calib.dist_coeffs, m_rvecs, m_tvecs, axis_len);
+        for(int i = 0; i < m_ids.size(); ++i)
+            aruco::drawAxis(frame, m_calib.matrix, m_calib.dist_coeffs, m_rvecs[i], m_tvecs[i], axis_len);
 }
 
 const cv::Ptr<aruco::Dictionary>& MarkerDetector::dictionary() const { return m_dictionary; }
