@@ -18,7 +18,7 @@ void CollectorServer::send(const std::string& data)
 {
     // Assemble the message
     std::stringstream ss;
-    ss << "{\"num\": \"" << m_message_count++ << "\", \"data\": \"" << data << "\"}";
+    ss << "{\"num\": \"" << m_message_count++ << "\", \"data\": " << data << "}";
     std::string message = ss.str();
     spdlog::info("Sending message to endpoints. Message: {}", message);
 
