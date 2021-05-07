@@ -85,5 +85,5 @@ cv::Vec3d ArenaDetector::adjust_tvec(const cv::Vec3d& tvec) const
 void ArenaDetector::update_state(const StateVariables& state)
 {
     // TODO: Reset mask if this changes so the mask can be recomputed
-    m_real_dist = state.camera.marker_length;
+    m_real_dist = state.camera.arena_distance;
 }
